@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+vars:
+  APP: demo
+  BIN_DIR: bin
+  BIN: bin/demo
+  ENV_FILE: .env
+
+tasks:
+  b-app:
+    desc: Compile application to bin/
+    cmds:
+      - mkdir -p {{.BIN_DIR}}
+      - go build -o {{.BIN}} ./cmd/demo/
+
+  r-app:
+    desc: Build, load .env and run application
+    deps: [b-app]
+    dotenv: ['{{.ENV_FILE}}']
+    cmds:
+      - ./{{.BIN}}
