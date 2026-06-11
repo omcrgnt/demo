@@ -1,6 +1,8 @@
 # demo
 
-In-memory REST CRUD demo built with [ecfg](https://github.com/omcrgnt/ecfg), [builder](https://github.com/omcrgnt/builder), [res](https://github.com/omcrgnt/res), [sdi](https://github.com/omcrgnt/sdi), [srv-http](https://github.com/omcrgnt/srv-http), and [runner](https://github.com/omcrgnt/runner).
+In-memory REST CRUD **service template** built with [ecfg](https://github.com/omcrgnt/ecfg), [builder](https://github.com/omcrgnt/builder), [res](https://github.com/omcrgnt/res), [sdi](https://github.com/omcrgnt/sdi), [srv-http](https://github.com/omcrgnt/srv-http), and [runner](https://github.com/omcrgnt/runner).
+
+Layer layout and conventions: **[ARCHITECTURE.md](ARCHITECTURE.md)**.
 
 ## Domain
 
@@ -68,27 +70,6 @@ curl -s -X PUT localhost:8080/items/<id> \
 # delete
 curl -s -X DELETE localhost:8080/items/<id> -w '\n'
 ```
-
-## Architecture
-
-`AppConfig` lives in [`internal/config`](internal/config/config.go). Application entrypoint is [`cmd/demo/app.go`](cmd/demo/app.go).
-
-```go
-type AppConfig struct {
-    Store      store.Config
-    Service    service.Config
-    Controller httpapi.Config
-    Metrics    httpapi.MetricsConfig
-    HTTPServer *srvhttp.Config[*httpapi.API]
-}
-```
-
-1. **ecfg** — `Parse[AppConfig]`: load config from environment
-2. **builder** — `Build(cfg, res.Default)`: run each component `Config.Build()`, register resources
-3. **sdi** — `Resolve(res.Default)`: wire deps into built resources
-4. **runner** — `New(res.Default)` then `Run` / `Stop`
-
-Each component `Config` implements `Build()` (the shared builder contract used by **builder**).
 
 ## Test
 

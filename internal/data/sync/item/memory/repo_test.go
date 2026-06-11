@@ -1,15 +1,16 @@
-package store_test
+package memory_test
 
 import (
 	"testing"
 
-	"github.com/omcrgnt/demo/internal/store"
+	"github.com/omcrgnt/demo/internal/data/sync/item/memory"
+	"github.com/omcrgnt/demo/internal/domain"
 )
 
-func TestMemoryStore_CRUD(t *testing.T) {
-	s := store.NewMemoryStore()
+func TestRepo_CRUD(t *testing.T) {
+	r := memory.NewRepo()
 
-	items, err := s.AllItems()
+	items, err := r.AllItems()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -17,7 +18,7 @@ func TestMemoryStore_CRUD(t *testing.T) {
 		t.Fatalf("expected empty list, got %d items", len(items))
 	}
 
-	created, err := s.AddItem("first")
+	created, err := r.AddItem("first")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -25,7 +26,7 @@ func TestMemoryStore_CRUD(t *testing.T) {
 		t.Fatalf("unexpected create result: %+v", created)
 	}
 
-	got, err := s.ItemByID(created.ID)
+	got, err := r.ItemByID(created.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,7 +34,7 @@ func TestMemoryStore_CRUD(t *testing.T) {
 		t.Fatalf("get mismatch: %+v vs %+v", got, created)
 	}
 
-	updated, err := s.SetItem(created.ID, "updated")
+	updated, err := r.SetItem(created.ID, "updated")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -41,7 +42,7 @@ func TestMemoryStore_CRUD(t *testing.T) {
 		t.Fatalf("expected updated title, got %q", updated.Title)
 	}
 
-	items, err = s.AllItems()
+	items, err = r.AllItems()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,34 +50,34 @@ func TestMemoryStore_CRUD(t *testing.T) {
 		t.Fatalf("expected 1 item, got %d", len(items))
 	}
 
-	if err := s.RemoveItem(created.ID); err != nil {
+	if err := r.RemoveItem(created.ID); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := s.ItemByID(created.ID); err != store.ErrNotFound {
+	if _, err := r.ItemByID(created.ID); err != domain.ErrNotFound {
 		t.Fatalf("expected ErrNotFound, got %v", err)
 	}
 }
 
-func TestMemoryStore_NotFound(t *testing.T) {
-	s := store.NewMemoryStore()
+func TestRepo_NotFound(t *testing.T) {
+	r := memory.NewRepo()
 
-	if _, err := s.ItemByID("missing"); err != store.ErrNotFound {
+	if _, err := r.ItemByID("missing"); err != domain.ErrNotFound {
 		t.Fatalf("expected ErrNotFound, got %v", err)
 	}
-	if _, err := s.SetItem("missing", "x"); err != store.ErrNotFound {
+	if _, err := r.SetItem("missing", "x"); err != domain.ErrNotFound {
 		t.Fatalf("expected ErrNotFound, got %v", err)
 	}
-	if err := s.RemoveItem("missing"); err != store.ErrNotFound {
+	if err := r.RemoveItem("missing"); err != domain.ErrNotFound {
 		t.Fatalf("expected ErrNotFound, got %v", err)
 	}
 }
 
 func TestConfig_Build(t *testing.T) {
-	res, err := store.Config{}.Build()
+	res, err := memory.Config{}.Build()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, ok := res.(*store.MemoryStore); !ok {
-		t.Fatalf("expected *MemoryStore, got %T", res)
+	if _, ok := res.(*memory.Repo); !ok {
+		t.Fatalf("expected *memory.Repo, got %T", res)
 	}
 }

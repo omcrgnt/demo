@@ -1,24 +1,25 @@
-package service_test
+package item_test
 
 import (
 	"testing"
 
 	"github.com/omcrgnt/builder"
-	"github.com/omcrgnt/demo/internal/service"
-	"github.com/omcrgnt/demo/internal/store"
+	"github.com/omcrgnt/demo/internal/data/sync/item/memory"
+	"github.com/omcrgnt/demo/internal/domain"
+	"github.com/omcrgnt/demo/internal/domain/service/item"
 	"github.com/omcrgnt/res"
 	"github.com/omcrgnt/sdi"
 )
 
-func resolveService(t *testing.T) *service.Service {
+func resolveService(t *testing.T) *item.Service {
 	t.Helper()
 
 	source := struct {
-		Store   store.Config
-		Service service.Config
+		ItemRepo memory.Config
+		Service  item.Config
 	}{
-		Store:   store.Config{},
-		Service: service.Config{},
+		ItemRepo: memory.Config{},
+		Service:  item.Config{},
 	}
 
 	if err := builder.Build(source, res.Default); err != nil {
@@ -28,7 +29,7 @@ func resolveService(t *testing.T) *service.Service {
 		t.Fatal(err)
 	}
 
-	svcs := res.Find[*service.Service]()
+	svcs := res.Find[*item.Service]()
 	if len(svcs) != 1 {
 		t.Fatal("service not found in resources")
 	}
@@ -71,16 +72,16 @@ func TestService(t *testing.T) {
 		if err := svc.Delete(created.ID); err != nil {
 			t.Fatal(err)
 		}
-		if _, err := svc.Get(created.ID); err != service.ErrNotFound {
+		if _, err := svc.Get(created.ID); err != domain.ErrNotFound {
 			t.Fatalf("expected ErrNotFound, got %v", err)
 		}
 	})
 
 	t.Run("InvalidInput", func(t *testing.T) {
-		if _, err := svc.Create("  "); err != service.ErrInvalidInput {
+		if _, err := svc.Create("  "); err != domain.ErrInvalidInput {
 			t.Fatalf("expected ErrInvalidInput, got %v", err)
 		}
-		if _, err := svc.Get(""); err != service.ErrInvalidInput {
+		if _, err := svc.Get(""); err != domain.ErrInvalidInput {
 			t.Fatalf("expected ErrInvalidInput, got %v", err)
 		}
 	})
