@@ -63,6 +63,39 @@ Domain errors live locally (e.g. `domain/errors.go` or per-service) for now.
 
 **Backlog:** org-wide shared errors package — not used yet.
 
+## Cross-cutting: logging
+
+**Backlog:** [github.com/omcrgnt/logger](https://github.com/omcrgnt/logger) + meta [github.com/omcrgnt/core](https://github.com/omcrgnt/core) — not wired in this demo yet.
+
+### System package (zero-config)
+
+- Blank import in the binary: `import _ "github.com/omcrgnt/core"` pulls system modules (logger first).
+- In `init()`, logger registers in `res` with a **production-ready default** (stderr, structured output, sensible level). No `AppConfig` field required for most services.
+- Optional override: `logger.Config` in `AppConfig` → env prefix → `Build()` → `res`. Zero value = leave the default from `init` unchanged.
+
+### Public API
+
+- Only `*Ctx` functions (`InfoCtx`, `ErrorCtx`, …). No legacy calls without `context.Context`.
+- Attrs: `...any` (slog-style). Prefer benchmarks over custom attr types when choosing the surface.
+
+### Context and engine
+
+- **Singleton** log engine for the process. Do not fork or allocate a logger per request.
+- `context.Context` carries **observation attrs** (correlation_id, trace_id via `obs`), not a `*Logger`. Merge ctx attrs at write time on each call.
+
+### Where to log
+
+| Layer | Rule |
+|-------|------|
+| **domain** | Return errors; no logger in struct fields or `interface.go`. `ctx` for cancel/timeout/deadlines only. |
+| **api** | Log at boundaries (handlers, middleware): `logger.*Ctx(ctx, …)` after obs is attached. |
+| **data** | Log I/O failures and adapter diagnostics at the repo boundary. |
+
+### Bootstrap vs runtime
+
+- Before `ecfg.Parse` or on fatal startup paths: stdlib `log` / stderr is fine (no structured pipeline yet).
+- After successful startup: structured logging for the **full process lifetime** via `logger.*Ctx`.
+
 ## `data`
 
 Everything needed to **store, fetch, or move data**. Naming: **`aggregate → backend`** (universal for template):
