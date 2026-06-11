@@ -13,9 +13,9 @@ import (
 const Prefix = "DEMO"
 
 type AppConfig struct {
-	Store      store.Config                 `ecfg:"STORE"`
-	Service    service.Config               `ecfg:"SERVICE"`
-	Controller httpapi.Config               `ecfg:"CONTROLLER"`
-	Metrics    httpapi.MetricsConfig        `ecfg:"METRICS"`
-	HTTPServer srvhttp.Config[*httpapi.API] `ecfg:"HTTP_SERVER"`
+	Store      store.Config                  `ecfg:"STORE"`
+	Service    service.Config                `ecfg:"SERVICE"`
+	Controller httpapi.Config                `ecfg:"CONTROLLER"`
+	Metrics    httpapi.MetricsConfig         `ecfg:"METRICS"`
+	HTTPServer *srvhttp.Config[*httpapi.API] `ecfg:"HTTP_SERVER"`
 }

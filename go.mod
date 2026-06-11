@@ -5,11 +5,12 @@ go 1.26.2
 require (
 	github.com/go-chi/chi/v5 v5.3.0
 	github.com/google/uuid v1.6.0
+	github.com/omcrgnt/builder v0.1.0
 	github.com/omcrgnt/ecfg v0.1.0
-	github.com/omcrgnt/res v0.2.0
-	github.com/omcrgnt/runner v0.1.1
-	github.com/omcrgnt/sdi v0.1.1
-	github.com/omcrgnt/srv-http v0.4.2
+	github.com/omcrgnt/res v0.4.0
+	github.com/omcrgnt/runner v0.2.0
+	github.com/omcrgnt/sdi v0.2.0
+	github.com/omcrgnt/srv-http v0.4.3
 	github.com/prometheus/client_golang v1.23.2
 	github.com/slok/go-http-metrics v0.13.0
 )
@@ -25,7 +26,6 @@ require (
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/cel-go v0.28.0 // indirect
-	github.com/mcrgnt/extractor v0.1.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/omcrgnt/proto/gen/go v0.3.0 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect

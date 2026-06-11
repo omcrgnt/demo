@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"log/slog"
 	"os"
@@ -10,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/omcrgnt/builder"
 	"github.com/omcrgnt/demo/internal/config"
 	"github.com/omcrgnt/ecfg"
 	"github.com/omcrgnt/res"
@@ -23,24 +23,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := res.Build(cfg); err != nil {
+	if err := builder.Build(cfg, res.Default); err != nil {
 		log.Fatal(err)
 	}
-
-	di := sdi.New()
-	if err := di.Resolve(res); err != nil {
+	if err := sdi.Resolve(res.Default); err != nil {
 		log.Fatal(err)
 	}
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	r := runner.New(di.Resources())
+	r := runner.New(res.Default)
 	go func() {
-		slog.Info("starting demo server",
-			"label", cfg.HTTPServer.Label.String(),
-			"addr", fmt.Sprintf("%s:%d", cfg.HTTPServer.Host.Value, cfg.HTTPServer.Port.Value),
-		)
 		if err := r.Run(ctx); err != nil {
 			slog.Error("runner failed", "err", err)
 			cancel()

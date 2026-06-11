@@ -1,6 +1,6 @@
 # demo
 
-In-memory REST CRUD demo built with [ecfg](https://github.com/omcrgnt/ecfg), [res](https://github.com/omcrgnt/res), [sdi](https://github.com/omcrgnt/sdi), [srv-http](https://github.com/omcrgnt/srv-http), and [runner](https://github.com/omcrgnt/runner).
+In-memory REST CRUD demo built with [ecfg](https://github.com/omcrgnt/ecfg), [builder](https://github.com/omcrgnt/builder), [res](https://github.com/omcrgnt/res), [sdi](https://github.com/omcrgnt/sdi), [srv-http](https://github.com/omcrgnt/srv-http), and [runner](https://github.com/omcrgnt/runner).
 
 ## Domain
 
@@ -79,16 +79,16 @@ type AppConfig struct {
     Service    service.Config
     Controller httpapi.Config
     Metrics    httpapi.MetricsConfig
-    HTTPServer srvhttp.Config[*httpapi.API]
+    HTTPServer *srvhttp.Config[*httpapi.API]
 }
 ```
 
 1. **ecfg** — `Parse[AppConfig]`: load config from environment
-2. **res** — `Build(AppConfig)`: run each component `Config.Build()`, register resources
-3. **sdi** — `Resolve(wiring.FromRegistry())`: wire deps into built resources
-4. **runner** — `Run` / `Stop` on resources returned by sdi
+2. **builder** — `Build(cfg, res.Default)`: run each component `Config.Build()`, register resources
+3. **sdi** — `Resolve(res.Default)`: wire deps into built resources
+4. **runner** — `New(res.Default)` then `Run` / `Stop`
 
-Each component `Config` implements `Build()` (the shared builder contract used by **res**).
+Each component `Config` implements `Build()` (the shared builder contract used by **builder**).
 
 ## Test
 

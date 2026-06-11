@@ -1,10 +1,11 @@
 package config_test
 
 import (
+	"reflect"
 	"testing"
 
+	"github.com/omcrgnt/builder"
 	"github.com/omcrgnt/demo/internal/config"
-	"github.com/omcrgnt/demo/internal/wiring"
 	"github.com/omcrgnt/ecfg"
 	"github.com/omcrgnt/res"
 	"github.com/omcrgnt/sdi"
@@ -18,6 +19,9 @@ func TestAppConfig_Parse(t *testing.T) {
 	cfg, err := ecfg.Parse[config.AppConfig](ecfg.WithPrefix(config.Prefix))
 	if err != nil {
 		t.Fatal(err)
+	}
+	if cfg.HTTPServer == nil {
+		t.Fatal("expected HTTPServer to be populated")
 	}
 	if cfg.HTTPServer.Label.GetValue() != "demo" {
 		t.Fatalf("label: got %q", cfg.HTTPServer.Label.GetValue())
@@ -40,20 +44,19 @@ func TestAppConfig_Resolve(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := res.Build(cfg.ResSource()); err != nil {
+	if err := builder.Build(cfg, res.Default); err != nil {
+		t.Fatal(err)
+	}
+	if err := sdi.Resolve(res.Default); err != nil {
 		t.Fatal(err)
 	}
 
-	source, err := wiring.FromRegistry()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	di := sdi.New()
-	if err := di.Resolve(source); err != nil {
-		t.Fatal(err)
-	}
-	if len(di.Resources()) == 0 {
+	n := 0
+	res.Walk(func(_ reflect.Type, _ any) bool {
+		n++
+		return true
+	})
+	if n == 0 {
 		t.Fatal("expected resources")
 	}
 }
