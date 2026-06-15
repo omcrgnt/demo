@@ -1,12 +1,12 @@
 package config_test
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/omcrgnt/builder"
 	"github.com/omcrgnt/demo/internal/config"
 	"github.com/omcrgnt/ecfg"
+	_ "github.com/omcrgnt/logger/use"
 	"github.com/omcrgnt/res"
 	"github.com/omcrgnt/sdi"
 )
@@ -52,7 +52,7 @@ func TestAppConfig_Resolve(t *testing.T) {
 	}
 
 	n := 0
-	res.Walk(func(_ reflect.Type, _ any) bool {
+	res.WalkEntries(func(_ res.Entry) bool {
 		n++
 		return true
 	})

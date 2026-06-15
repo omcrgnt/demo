@@ -21,3 +21,8 @@ tasks:
     dotenv: ['{{.ENV_FILE}}']
     cmds:
       - ./{{.BIN}}
+
+  lint:
+    desc: Run org golangci app profile
+    cmds:
+      - golangci-lint run -c ../lint/go/config/app.golangci.yml ./...

@@ -12,6 +12,7 @@ import (
 	"github.com/omcrgnt/builder"
 	"github.com/omcrgnt/demo/internal/config"
 	"github.com/omcrgnt/ecfg"
+	_ "github.com/omcrgnt/logger/use"
 	"github.com/omcrgnt/res"
 	"github.com/omcrgnt/runner"
 	"github.com/omcrgnt/sdi"
@@ -33,7 +34,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	r := runner.New(res.Default)
+	r := runner.New(runnerPool{reg: res.Default})
 	go func() {
 		if err := r.Run(ctx); err != nil {
 			slog.Error("runner failed", "err", err)

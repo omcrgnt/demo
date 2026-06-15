@@ -133,8 +133,12 @@ internal/data/sync/<aggregate>/<backend>/
 
 1. `ecfg.Parse[AppConfig]()` — load env
 2. `builder.Build(cfg, res.Default)` — `Config.Build()` per module
-3. `sdi.Resolve(res.Default)` — inject deps
-4. `runner.New(res.Default).Run / Stop` — start stoppable resources (HTTP server)
+3. `sdi.Resolve(res.Default)` — dedupe (`DefaultDedupPolicy` + `Remove`), then inject deps
+4. `runner.New(runnerPool{reg: res.Default}).Run / Stop` — start stoppable resources (HTTP server)
+
+`runnerPool` adapts `res.Registry` (`WalkEntries`) to `runner.Pool` (`Walk`). System defaults (e.g. logger) register via `AddWithTags(..., TagReplaceable)` in library `init` — not in app code.
+
+See [docs/res-sdi-coupling.md](docs/res-sdi-coupling.md) for res↔sdi design variants (ADR).
 
 Each module exposes `Config` with `Build() (any, error)`; wired resources implement `Deps()` / `Inject()` where needed.
 

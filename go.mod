@@ -7,9 +7,10 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/omcrgnt/builder v0.1.0
 	github.com/omcrgnt/ecfg v0.1.0
-	github.com/omcrgnt/res v0.4.0
+	github.com/omcrgnt/logger v0.1.1
+	github.com/omcrgnt/res v0.6.0
 	github.com/omcrgnt/runner v0.2.0
-	github.com/omcrgnt/sdi v0.2.0
+	github.com/omcrgnt/sdi v1.2.0
 	github.com/omcrgnt/srv-http v0.4.3
 	github.com/prometheus/client_golang v1.23.2
 	github.com/slok/go-http-metrics v0.13.0

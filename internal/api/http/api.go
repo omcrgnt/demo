@@ -49,7 +49,7 @@ func (a *API) registerRoutes() {
 }
 
 func (a *API) listItems(w nethttp.ResponseWriter, r *nethttp.Request) {
-	items, err := a.svc.List()
+	items, err := a.svc.List(r.Context())
 	if err != nil {
 		writeError(w, nethttp.StatusInternalServerError, err)
 		return
@@ -63,7 +63,7 @@ func (a *API) listItems(w nethttp.ResponseWriter, r *nethttp.Request) {
 
 func (a *API) getItem(w nethttp.ResponseWriter, r *nethttp.Request) {
 	id := chi.URLParam(r, "id")
-	item, err := a.svc.Get(id)
+	item, err := a.svc.Get(r.Context(), id)
 	if err != nil {
 		writeServiceError(w, err)
 		return
@@ -78,7 +78,7 @@ func (a *API) createItem(w nethttp.ResponseWriter, r *nethttp.Request) {
 		return
 	}
 
-	item, err := a.svc.Create(req.Title)
+	item, err := a.svc.Create(r.Context(), req.Title)
 	if err != nil {
 		writeServiceError(w, err)
 		return
@@ -94,7 +94,7 @@ func (a *API) updateItem(w nethttp.ResponseWriter, r *nethttp.Request) {
 		return
 	}
 
-	item, err := a.svc.Update(id, req.Title)
+	item, err := a.svc.Update(r.Context(), id, req.Title)
 	if err != nil {
 		writeServiceError(w, err)
 		return
@@ -104,7 +104,7 @@ func (a *API) updateItem(w nethttp.ResponseWriter, r *nethttp.Request) {
 
 func (a *API) deleteItem(w nethttp.ResponseWriter, r *nethttp.Request) {
 	id := chi.URLParam(r, "id")
-	if err := a.svc.Delete(id); err != nil {
+	if err := a.svc.Delete(r.Context(), id); err != nil {
 		writeServiceError(w, err)
 		return
 	}

@@ -13,9 +13,9 @@ import (
 const Prefix = "DEMO"
 
 type AppConfig struct {
-	ItemRepo   memory.Config              `ecfg:"ITEM_REPO"`
-	ItemService item.Config               `ecfg:"ITEM_SERVICE"`
-	HTTP       http.Config                `ecfg:"HTTP"`
-	Metrics    http.MetricsConfig         `ecfg:"METRICS"`
-	HTTPServer *srvhttp.Config[*http.API] `ecfg:"HTTP_SERVER"`
+	ItemRepo    memory.Config              `ecfg:"ITEM_REPO"`
+	ItemService item.Config                `ecfg:"ITEM_SERVICE"`
+	HTTP        http.Config                `ecfg:"HTTP"`
+	Metrics     http.MetricsConfig         `ecfg:"METRICS"`
+	HTTPServer  *srvhttp.Config[*http.API] `ecfg:"HTTP_SERVER"`
 }

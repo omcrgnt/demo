@@ -1,6 +1,8 @@
 package item_test
 
 import (
+	"context"
+	"reflect"
 	"testing"
 
 	"github.com/omcrgnt/builder"
@@ -10,6 +12,8 @@ import (
 	"github.com/omcrgnt/res"
 	"github.com/omcrgnt/sdi"
 )
+
+var testCtx = context.Background()
 
 func resolveService(t *testing.T) *item.Service {
 	t.Helper()
@@ -29,23 +33,23 @@ func resolveService(t *testing.T) *item.Service {
 		t.Fatal(err)
 	}
 
-	svcs := res.Find[*item.Service]()
-	if len(svcs) != 1 {
-		t.Fatal("service not found in resources")
+	svcAny, err := res.GetOneByType(reflect.TypeOf((*item.Service)(nil)))
+	if err != nil {
+		t.Fatal(err)
 	}
-	return svcs[0]
+	return svcAny.(*item.Service)
 }
 
 func TestService(t *testing.T) {
 	svc := resolveService(t)
 
 	t.Run("CRUD", func(t *testing.T) {
-		created, err := svc.Create("alpha")
+		created, err := svc.Create(testCtx, "alpha")
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		got, err := svc.Get(created.ID)
+		got, err := svc.Get(testCtx, created.ID)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -53,7 +57,7 @@ func TestService(t *testing.T) {
 			t.Fatalf("unexpected title: %q", got.Title)
 		}
 
-		updated, err := svc.Update(created.ID, "beta")
+		updated, err := svc.Update(testCtx, created.ID, "beta")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -61,7 +65,7 @@ func TestService(t *testing.T) {
 			t.Fatalf("unexpected title: %q", updated.Title)
 		}
 
-		items, err := svc.List()
+		items, err := svc.List(testCtx)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -69,19 +73,19 @@ func TestService(t *testing.T) {
 			t.Fatalf("expected 1 item, got %d", len(items))
 		}
 
-		if err := svc.Delete(created.ID); err != nil {
+		if err := svc.Delete(testCtx, created.ID); err != nil {
 			t.Fatal(err)
 		}
-		if _, err := svc.Get(created.ID); err != domain.ErrNotFound {
+		if _, err := svc.Get(testCtx, created.ID); err != domain.ErrNotFound {
 			t.Fatalf("expected ErrNotFound, got %v", err)
 		}
 	})
 
 	t.Run("InvalidInput", func(t *testing.T) {
-		if _, err := svc.Create("  "); err != domain.ErrInvalidInput {
+		if _, err := svc.Create(testCtx, "  "); err != domain.ErrInvalidInput {
 			t.Fatalf("expected ErrInvalidInput, got %v", err)
 		}
-		if _, err := svc.Get(""); err != domain.ErrInvalidInput {
+		if _, err := svc.Get(testCtx, ""); err != domain.ErrInvalidInput {
 			t.Fatalf("expected ErrInvalidInput, got %v", err)
 		}
 	})
