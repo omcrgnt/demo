@@ -17,6 +17,7 @@ import (
 	"github.com/omcrgnt/res"
 	"github.com/omcrgnt/runner"
 	"github.com/omcrgnt/sdi"
+	_ "github.com/omcrgnt/telemetry/use"
 )
 
 func main() {
