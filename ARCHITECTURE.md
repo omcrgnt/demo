@@ -65,11 +65,11 @@ Domain errors live locally (e.g. `domain/errors.go` or per-service) for now.
 
 ## Cross-cutting: logging
 
-**Backlog:** [github.com/omcrgnt/logger](https://github.com/omcrgnt/logger) + meta [github.com/omcrgnt/core](https://github.com/omcrgnt/core) — not wired in this demo yet.
+**Backlog:** [github.com/omcrgnt/logger](https://github.com/omcrgnt/logger) + meta [`res/core/use`](https://github.com/omcrgnt/res/tree/main/core/use) — wired in demo via single blank import.
 
 ### System package (zero-config)
 
-- Blank import in the binary: `import _ "github.com/omcrgnt/core"` pulls system modules (logger first).
+- Blank import in the binary: `import _ "github.com/omcrgnt/res/core/use"` pulls logger and telemetry system defaults.
 - In `init()`, logger registers in `res` with a **production-ready default** (stderr, structured output, sensible level). No `AppConfig` field required for most services.
 - Optional override: `logger.Config` in `AppConfig` → env prefix → `Build()` → `res`. Zero value = leave the default from `init` unchanged.
 

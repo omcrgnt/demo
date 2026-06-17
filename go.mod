@@ -9,11 +9,10 @@ require (
 	github.com/omcrgnt/ecfg v0.1.0
 	github.com/omcrgnt/logger v0.1.1
 	github.com/omcrgnt/obs v0.1.0
-	github.com/omcrgnt/res v0.6.0
+	github.com/omcrgnt/res v0.7.0
 	github.com/omcrgnt/runner v0.2.0
 	github.com/omcrgnt/sdi v1.2.0
 	github.com/omcrgnt/srv-http v0.4.3
-	github.com/omcrgnt/telemetry v0.1.0
 	github.com/prometheus/client_golang v1.23.2
 	github.com/slok/go-http-metrics v0.13.0
 	go.opentelemetry.io/otel v1.44.0
@@ -34,6 +33,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.29.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/omcrgnt/proto/gen/go v0.3.0 // indirect
+	github.com/omcrgnt/telemetry v0.1.0 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.66.1 // indirect
 	github.com/prometheus/procfs v0.16.1 // indirect

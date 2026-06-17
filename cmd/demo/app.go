@@ -9,15 +9,15 @@ import (
 	"syscall"
 	"time"
 
+	_ "github.com/omcrgnt/res/core/use"
+
 	"github.com/omcrgnt/builder"
 	"github.com/omcrgnt/demo/internal/config"
 	"github.com/omcrgnt/ecfg"
-	_ "github.com/omcrgnt/logger/use"
 	"github.com/omcrgnt/obs"
 	"github.com/omcrgnt/res"
 	"github.com/omcrgnt/runner"
 	"github.com/omcrgnt/sdi"
-	_ "github.com/omcrgnt/telemetry/use"
 )
 
 func main() {
