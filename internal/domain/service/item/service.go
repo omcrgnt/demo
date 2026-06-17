@@ -1,5 +1,7 @@
 package item
 
+//go:generate go run github.com/omcrgnt/obs/cmd/obsgen -type=Service
+
 import (
 	"context"
 	"errors"
@@ -32,6 +34,10 @@ func (s *Service) Inject(args []any) {
 
 type Service struct {
 	repo ItemRepository
+}
+
+func (s *Service) Label() string {
+	return "item-service"
 }
 
 func (s *Service) List(ctx context.Context) ([]model.Item, error) {

@@ -12,7 +12,7 @@ import (
 
 type API struct {
 	mux *chi.Mux
-	svc *item.Service
+	svc item.ItemService
 }
 
 type Config struct{}
@@ -23,13 +23,13 @@ func (Config) Build() (any, error) {
 
 func (a *API) Deps() []any {
 	return []any{
-		(*item.Service)(nil),
+		(*item.ItemService)(nil),
 	}
 }
 
 func (a *API) Inject(args []any) {
 	for _, arg := range args {
-		if svc, ok := arg.(*item.Service); ok {
+		if svc, ok := arg.(item.ItemService); ok {
 			a.svc = svc
 		}
 	}

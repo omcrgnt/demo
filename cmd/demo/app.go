@@ -13,6 +13,7 @@ import (
 	"github.com/omcrgnt/demo/internal/config"
 	"github.com/omcrgnt/ecfg"
 	_ "github.com/omcrgnt/logger/use"
+	"github.com/omcrgnt/obs"
 	"github.com/omcrgnt/res"
 	"github.com/omcrgnt/runner"
 	"github.com/omcrgnt/sdi"
@@ -27,6 +28,11 @@ func main() {
 	if err := builder.Build(cfg, res.Default); err != nil {
 		log.Fatal(err)
 	}
+
+	if err := res.Transform(obs.ApplyTransform); err != nil {
+		log.Fatal(err)
+	}
+
 	if err := sdi.Resolve(res.Default); err != nil {
 		log.Fatal(err)
 	}

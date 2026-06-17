@@ -9,6 +9,11 @@ vars:
   ENV_FILE: .env
 
 tasks:
+  gen:
+    desc: Run go generate
+    cmds:
+      - go generate ./internal/domain/service/item/
+
   b-app:
     desc: Compile application to bin/
     cmds:
