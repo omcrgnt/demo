@@ -5,11 +5,11 @@ go 1.26.2
 require (
 	github.com/go-chi/chi/v5 v5.3.0
 	github.com/google/uuid v1.6.0
-	github.com/omcrgnt/builder v0.1.0
-	github.com/omcrgnt/ecfg v0.1.0
-	github.com/omcrgnt/logger v0.1.1
+	github.com/omcrgnt/builder v0.2.0
+	github.com/omcrgnt/ecfg v0.2.0
+	github.com/omcrgnt/logger v0.2.0
 	github.com/omcrgnt/obs v0.1.0
-	github.com/omcrgnt/res v0.8.1
+	github.com/omcrgnt/res v0.9.0
 	github.com/omcrgnt/runner v0.2.0
 	github.com/omcrgnt/sdi v1.3.0
 	github.com/omcrgnt/srv-http v0.4.3
@@ -33,7 +33,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.29.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/omcrgnt/proto/gen/go v0.3.0 // indirect
-	github.com/omcrgnt/telemetry v0.1.0 // indirect
+	github.com/omcrgnt/telemetry v0.2.0 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.69.0 // indirect
 	github.com/prometheus/procfs v0.20.1 // indirect
@@ -46,7 +46,6 @@ require (
 	go.opentelemetry.io/otel/trace v1.44.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.10.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
-	go.yaml.in/yaml/v2 v2.4.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/exp v0.0.0-20260611194520-c48552f49976 // indirect
 	golang.org/x/mod v0.37.0 // indirect

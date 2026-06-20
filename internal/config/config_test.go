@@ -44,7 +44,11 @@ func TestAppConfig_Resolve(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := builder.Build(cfg, res.Default); err != nil {
+	if err := ecfg.Register(cfg, res.Default); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := builder.Build(res.Default); err != nil {
 		t.Fatal(err)
 	}
 	if err := sdi.Resolve(res.Default); err != nil {

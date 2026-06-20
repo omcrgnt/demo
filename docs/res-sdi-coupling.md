@@ -6,7 +6,7 @@ Design record for registry ↔ wiring integration. Chosen approach: **variant 5 
 
 - **res** — resource registry (`Registry`), tags on `Entry` (`TagReplaceable` for library defaults via `AddWithTags`)
 - **sdi** — dependency graph, topo-sort, `Inject`
-- **demo** — composition root: `builder.Build` → `sdi.Resolve(res.Default)`
+- **demo** — composition root: `ecfg.Register` → `builder.Build(res)` → `sdi.Resolve(res.Default)`
 
 Interface ports (e.g. logger `Output`) may have a **Replaceable** default + **explicit** override as **different concretes** until Resolve.
 

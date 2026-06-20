@@ -26,7 +26,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := builder.Build(cfg, res.Default); err != nil {
+	if err := ecfg.Register(cfg, res.Default); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := builder.Build(res.Default); err != nil {
 		log.Fatal(err)
 	}
 

@@ -132,11 +132,12 @@ internal/data/sync/<aggregate>/<backend>/
 [`cmd/demo/app.go`](cmd/demo/app.go):
 
 1. `ecfg.Parse[AppConfig]()` — load env
-2. `builder.Build(cfg, res.Default)` — `Config.Build()` per module
-3. `sdi.Resolve(res.Default)` — dedupe (`DefaultDedupPolicy` + `Remove`), then inject deps
-4. `runner.New(runnerPool{reg: res.Default}).Run / Stop` — start stoppable resources (HTTP server)
+2. `ecfg.Register(cfg, res.Default)` — app configs into registry
+3. `builder.Build(res.Default)` — materialize configs into resources
+4. `sdi.Resolve(res.Default)` — dedupe (`DefaultDedupPolicy` + `Remove`), then inject deps
+5. `runner.New(runnerPool{reg: res.Default}).Run / Stop` — start stoppable resources (HTTP server)
 
-`runnerPool` adapts `res.Registry` (`WalkEntries`) to `runner.Pool` (`Walk`). System defaults (e.g. logger) register via `AddWithTags(..., TagReplaceable)` in library `init` — not in app code.
+`runnerPool` adapts `res.Registry` (`WalkEntries`) to `runner.Pool` (`Walk`). System defaults register as configs via `AddWithTags(..., TagReplaceable)` in library `init`, then `builder.Build` materializes them — not in app code.
 
 See [docs/res-sdi-coupling.md](docs/res-sdi-coupling.md) for res↔sdi design variants (ADR).
 

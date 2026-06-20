@@ -18,15 +18,11 @@ var testCtx = context.Background()
 func resolveService(t *testing.T) *item.Service {
 	t.Helper()
 
-	source := struct {
-		ItemRepo memory.Config
-		Service  item.Config
-	}{
-		ItemRepo: memory.Config{},
-		Service:  item.Config{},
-	}
+	res.ResetDefault()
+	_ = res.Add(memory.Config{})
+	_ = res.Add(item.Config{})
 
-	if err := builder.Build(source, res.Default); err != nil {
+	if err := builder.Build(res.Default); err != nil {
 		t.Fatal(err)
 	}
 	if err := sdi.Resolve(res.Default); err != nil {

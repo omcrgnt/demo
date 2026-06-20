@@ -2,3 +2,5 @@
 /demo
 .env
 report.json
+go.work
+go.work.sum
