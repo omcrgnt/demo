@@ -15,9 +15,7 @@ type API struct {
 	svc item.ItemService
 }
 
-type Config struct{}
-
-func (Config) Build() (any, error) {
+func (a *API) BuildResource() (any, error) {
 	return &API{mux: chi.NewRouter()}, nil
 }
 

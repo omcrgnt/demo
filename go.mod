@@ -5,7 +5,7 @@ go 1.26.2
 require (
 	github.com/go-chi/chi/v5 v5.3.0
 	github.com/google/uuid v1.6.0
-	github.com/omcrgnt/builder v0.2.0
+	github.com/omcrgnt/builder v0.3.0
 	github.com/omcrgnt/ecfg v0.2.0
 	github.com/omcrgnt/logger v0.2.0
 	github.com/omcrgnt/obs v0.1.0
@@ -59,3 +59,5 @@ require (
 	google.golang.org/grpc v1.81.1 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
+
+replace github.com/omcrgnt/builder => ../builder
