@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+vars:
+  APP: demo
+  BIN_DIR: bin
+  BIN: bin/demo
+  ENV_FILE: .env
+  DE_COMPOSE_FILE: compose.yml
+
+tasks:
+  gen:
+    desc: Run go generate
+    cmds:
+      - go generate ./cmd/demo/ ./internal/domain/service/item/ ./internal/domain/service/order/
+
+  b-app:
+    desc: Compile application to bin/
+    cmds:
+      - mkdir -p {{.BIN_DIR}}
+      - go build -o {{.BIN}} ./cmd/demo/
+
+  r-app:
+    desc: Build, load .env and run application
+    deps: [b-app]
+    dotenv: ['{{.ENV_FILE}}']
+    cmds:
+      - ./{{.BIN}}
+
+  test:
+    desc: Run all tests
+    cmds:
+      - go test ./...
+
+  de:up:
+    desc: Start developer environment (Jaeger)
+    cmds:
+      - docker compose -f {{.DE_COMPOSE_FILE}} up -d
+
+  de:down:
+    desc: Stop developer environment
+    cmds:
+      - docker compose -f {{.DE_COMPOSE_FILE}} down
+
+  de:logs:
+    desc: Tail developer environment logs
+    cmds:
+      - docker compose -f {{.DE_COMPOSE_FILE}} logs -f
+
+  lint:
+    desc: Run org golangci app profile
+    cmds:
+      - golangci-lint run -c ../../lint/go/config/app.golangci.yml ./...

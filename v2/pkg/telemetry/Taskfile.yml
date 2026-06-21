@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+vars:
+  LINT_CONFIG: ../lint/go/config/system.golangci.yml
+
+tasks:
+  test:
+    desc: Run unit tests
+    cmds:
+      - go test ./...
+
+  lint:
+    desc: Run golangci with system profile (forbid res.Add)
+    cmds:
+      - golangci-lint run -c {{.LINT_CONFIG}} ./...
+
+  default:
+    cmds:
+      - task: test
+      - task: lint

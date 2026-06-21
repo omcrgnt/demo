@@ -1,0 +1,15 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+tasks:
+  gen:
+    desc: Run go generate (obsgen)
+    cmds:
+      - go generate ./testdata/
+
+  test:
+    desc: Run all tests
+    deps: [gen]
+    cmds:
+      - go test ./...
