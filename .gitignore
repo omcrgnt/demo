@@ -1,6 +1,3 @@
-/bin/
-/demo
+bin/
 .env
 report.json
-go.work
-go.work.sum

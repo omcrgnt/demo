@@ -5,31 +5,36 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/omcrgnt/builder"
 	"github.com/omcrgnt/demo/internal/data/sync/item/memory"
 	"github.com/omcrgnt/demo/internal/domain"
 	"github.com/omcrgnt/demo/internal/domain/service/item"
+	"github.com/omcrgnt/builder"
 	"github.com/omcrgnt/res"
+	"github.com/omcrgnt/res/restest"
 	"github.com/omcrgnt/sdi"
 )
 
 var testCtx = context.Background()
 
-func resolveService(t *testing.T) *item.Service {
+func resolveService(t *testing.T, spec item.Spec) *item.Service {
 	t.Helper()
 
-	res.ResetDefault()
-	_ = res.Add(memory.Config{})
-	_ = res.Add(item.Config{})
-
-	if err := builder.Build(res.Default); err != nil {
+	restest.ResetGlobal()
+	repo, err := memory.RepoRoot{}.NewResource()
+	if err != nil {
 		t.Fatal(err)
 	}
-	if err := sdi.Resolve(res.Default); err != nil {
+	_ = res.Global().Add(repo)
+	_ = res.Global().Add(spec)
+
+	if err := builder.Build(res.Global()); err != nil {
+		t.Fatal(err)
+	}
+	if err := sdi.Resolve(res.Global()); err != nil {
 		t.Fatal(err)
 	}
 
-	svcAny, err := res.GetOneByType(reflect.TypeOf((*item.Service)(nil)))
+	svcAny, err := res.Global().GetOneByType(reflect.TypeOf((*item.Service)(nil)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,7 +42,7 @@ func resolveService(t *testing.T) *item.Service {
 }
 
 func TestService(t *testing.T) {
-	svc := resolveService(t)
+	svc := resolveService(t, item.Spec{})
 
 	t.Run("CRUD", func(t *testing.T) {
 		created, err := svc.Create(testCtx, "alpha")
@@ -85,4 +90,28 @@ func TestService(t *testing.T) {
 			t.Fatalf("expected ErrInvalidInput, got %v", err)
 		}
 	})
+}
+
+func TestService_ListMaxLen(t *testing.T) {
+	svc := resolveService(t, item.Spec{MaxListLen: 2})
+
+	for _, title := range []string{"a", "b", "c"} {
+		if _, err := svc.Create(testCtx, title); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	items, err := svc.List(testCtx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(items) != 2 {
+		t.Fatalf("expected 2 items, got %d", len(items))
+	}
+}
+
+func TestMaxListLen_Validate(t *testing.T) {
+	if err := item.MaxListLen(-1).Validate(); err == nil {
+		t.Fatal("expected validation error")
+	}
 }

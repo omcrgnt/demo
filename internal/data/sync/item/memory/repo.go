@@ -8,9 +8,10 @@ import (
 	"github.com/omcrgnt/demo/internal/domain/model"
 )
 
-type Config struct{}
+// RepoRoot is the AppResources wire type for the item repository.
+type RepoRoot struct{}
 
-func (Config) Build() (any, error) {
+func (RepoRoot) NewResource() (any, error) {
 	return NewRepo(), nil
 }
 

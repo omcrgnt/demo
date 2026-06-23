@@ -13,7 +13,7 @@ tasks:
   gen:
     desc: Run go generate
     cmds:
-      - go generate ./internal/domain/service/item/
+      - go generate ./cmd/demo/ ./internal/domain/service/item/ ./internal/domain/service/order/
 
   b-app:
     desc: Compile application to bin/
@@ -27,6 +27,11 @@ tasks:
     dotenv: ['{{.ENV_FILE}}']
     cmds:
       - ./{{.BIN}}
+
+  test:
+    desc: Run all tests
+    cmds:
+      - go test ./...
 
   de:up:
     desc: Start developer environment (Jaeger)
@@ -46,4 +51,4 @@ tasks:
   lint:
     desc: Run org golangci app profile
     cmds:
-      - golangci-lint run -c ../lint/go/config/app.golangci.yml ./...
+      - golangci-lint run -c ../../lint/go/config/app.golangci.yml ./...

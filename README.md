@@ -1,78 +1,61 @@
-# demo
+# demo — AppResources reference app
 
-In-memory REST CRUD **service template** built with [ecfg](https://github.com/omcrgnt/ecfg), [builder](https://github.com/omcrgnt/builder), [res](https://github.com/omcrgnt/res), [sdi](https://github.com/omcrgnt/sdi), [srv-http](https://github.com/omcrgnt/srv-http), and [runner](https://github.com/omcrgnt/runner).
+Reference application for the target architecture: single `go.mod`, org libs from `github.com/omcrgnt/*`, pipeline without legacy `Resourcer`.
 
-Layer layout and conventions: **[ARCHITECTURE.md](ARCHITECTURE.md)**.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for contracts, roles, and backlog.
 
-## Domain
+## Pipeline
 
-`Item` with fields `id` and `title`, stored in memory.
+Handled by [`github.com/omcrgnt/app`](https://github.com/omcrgnt/app):
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/items` | List all items |
-| GET | `/items/{id}` | Get item by id |
-| POST | `/items` | Create item (`{"title":"..."}`) |
-| PUT | `/items/{id}` | Update item (`{"title":"..."}`) |
-| DELETE | `/items/{id}` | Delete item |
-
-## Configuration
-
-Environment variables (prefix `DEMO`):
-
-```bash
-export DEMO_HTTP_SERVER_LABEL=demo
-export DEMO_HTTP_SERVER_HOST=127.0.0.1
-export DEMO_HTTP_SERVER_PORT=8080
+```text
+app.Run(&appResources, pipeline)  // pipeline configured explicitly in main
+  → Seed → Apply → Build → Transform → Resolve → runner
 ```
 
-See [env.template](env.template) for generated documentation.
+`AppResources` holds **resources** only: each field is [NewResourceer] or [BuildConfiger]. Configurable resources use two types — resource + Spec/Config (`BuildConfig()` → spec, `Build()` → resource). ecfg walks the spec, not wire fields.
 
-Regenerate template:
+## AppResources
 
-```bash
-go generate ./internal/config/...
-```
+Fields follow `{type}{subject}` (e.g. `RepoOrder`, `ServiceItem`). Each field is [NewResourceer] or [BuildConfiger].
 
-## Run
+| Field | Mechanism |
+|-------|-----------|
+| `App` | `*app.App` [BuildConfiger] → `app.Spec` |
+| `Runner` | [NewResourceer] → `*runner.Runner` |
+| `RepoItem` | [NewResourceer] → `*memory.Repo` |
+| `ServiceItem` | `*item.Service` [BuildConfiger] → `item.Spec` |
+| `RepoOrder` | [NewResourceer] → `*ordermemory.Repo` |
+| `ServiceOrder` | [NewResourceer] → `*order.Service` |
+| `Metrics` | [NewResourceer] |
+| `ServerHTTPItem` | `*http.Server` [BuildConfiger] → `srvhttp.Config[*http.API]` |
+| `APIItem` | [NewResourceer] |
+| `ServerHTTPOrder` | `*srvhttp.Config[...]` [BuildConfiger] → same config type |
+| `APIOrder` | [NewResourceer] |
+
+### app.Pipeline (set in main)
+
+- `Registry` — e.g. `res.Global()` or `res.New()` in tests
+- `EnvPrefix` — ecfg prefix, e.g. `"DEMO"`
+- `Transforms` — e.g. `[]res.TransformFunc{obs.ApplyTransform}`; empty skips Transform
+
+## Commands
+
+From repo root:
 
 ```bash
 cp .env.example .env
-task r-app
+task r-app      # build + run with .env
+task test       # go test ./...
+task gen        # go generate (obsgen, ecfg-gen → .env.template + env.md)
 ```
 
-Build only:
+- `.env.template` — generated keys only (`KEY=`)
+- `env.md` — generated usage docs (tables by ecfg block)
+- `.env.example` — sample values for local run (`cp .env.example .env`)
 
-```bash
-task b-app
-# -> bin/demo
-```
+## Notes
 
-## Examples
-
-```bash
-# list (empty)
-curl -s localhost:8080/items
-
-# create
-curl -s -X POST localhost:8080/items \
-  -H 'Content-Type: application/json' \
-  -d '{"title":"first item"}'
-
-# get (replace ID)
-curl -s localhost:8080/items/<id>
-
-# update
-curl -s -X PUT localhost:8080/items/<id> \
-  -H 'Content-Type: application/json' \
-  -d '{"title":"updated"}'
-
-# delete
-curl -s -X DELETE localhost:8080/items/<id> -w '\n'
-```
-
-## Test
-
-```bash
-go test ./...
-```
+- Stack deps are published modules (`app`, `builder`, `ecfg`, `res`, `sdi`, …) at `v0.20.x`.
+- `logger/use` and `telemetry/use` are blank-imported in `main` so `res.Global()` registers defaults.
+- External require: `github.com/omcrgnt/proto/gen/go` (srv-http Label/Host/Port).

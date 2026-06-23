@@ -1,39 +1,61 @@
 package item
 
+//go:generate go run github.com/omcrgnt/sdi/cmd/sdigen
 //go:generate go run github.com/omcrgnt/obs/cmd/obsgen -type=Service
 
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/omcrgnt/demo/internal/domain"
 	"github.com/omcrgnt/demo/internal/domain/model"
+	"github.com/omcrgnt/builder"
 	"github.com/omcrgnt/logger"
 )
 
-type Config struct{}
+const defaultMaxListLen = 100
 
-func (Config) Build() (any, error) {
-	return &Service{}, nil
+// MaxListLen limits how many items [Service.List] returns (0 = use default).
+type MaxListLen int
+
+func (MaxListLen) Usage() string {
+	return "Maximum items returned by List (0 = default 100)"
 }
 
-func (s *Service) Deps() []any {
-	return []any{
-		(*ItemRepository)(nil),
+func (l MaxListLen) Validate() error {
+	if l < 0 {
+		return fmt.Errorf("max list len must be >= 0")
 	}
+	return nil
 }
 
-func (s *Service) Inject(args []any) {
-	for _, arg := range args {
-		if repo, ok := arg.(ItemRepository); ok {
-			s.repo = repo
-		}
-	}
-}
-
-type Service struct {
+type deps struct {
 	repo ItemRepository
+}
+
+// Service is the item domain service resource.
+type Service struct {
+	deps
+	maxListLen int
+}
+
+func (s *Service) BuildConfig() (builder.Builder, error) {
+	return &Spec{}, nil
+}
+
+// Spec is the item service config; [Spec.Build] returns [*Service].
+type Spec struct {
+	MaxListLen MaxListLen
+}
+
+func (s Spec) Build() (any, error) {
+	max := int(s.MaxListLen)
+	if max == 0 {
+		max = defaultMaxListLen
+	}
+	return &Service{maxListLen: max}, nil
 }
 
 func (s *Service) Label() string {
@@ -46,7 +68,10 @@ func (s *Service) List(ctx context.Context) ([]model.Item, error) {
 		logger.Error(ctx, "item list failed", "err", err)
 		return nil, err
 	}
-	logger.Info(ctx, "item list", "count", len(items))
+	if s.maxListLen > 0 && len(items) > s.maxListLen {
+		items = items[:s.maxListLen]
+	}
+	logger.Info(ctx, "item list", "count", len(items), "max", s.maxListLen)
 	return items, nil
 }
 

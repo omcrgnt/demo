@@ -5,9 +5,10 @@ import (
 	promrecorder "github.com/slok/go-http-metrics/metrics/prometheus"
 )
 
-type MetricsConfig struct{}
+// Metrics is the AppResources wire type for HTTP metrics recorder.
+type Metrics struct{}
 
-func (MetricsConfig) Build() (any, error) {
+func (Metrics) NewResource() (any, error) {
 	reg := prometheus.NewRegistry()
 	return promrecorder.NewRecorder(promrecorder.Config{Registry: reg}), nil
 }

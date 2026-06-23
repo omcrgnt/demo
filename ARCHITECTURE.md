@@ -1,181 +1,85 @@
-# Architecture (devconv)
+# Architecture
 
-Org template layout for services on [ecfg](https://github.com/omcrgnt/ecfg), [builder](https://github.com/omcrgnt/builder), [res](https://github.com/omcrgnt/res), [sdi](https://github.com/omcrgnt/sdi), [srv-http](https://github.com/omcrgnt/srv-http), and [runner](https://github.com/omcrgnt/runner).
+Reference app assembly: one `go.mod`, org libs from `github.com/omcrgnt/*`, explicit pipeline (no legacy `Resourcer`).
 
-## Layers
+## Pipeline
 
-| Layer | Path | Role |
-|-------|------|------|
-| **app** | `cmd/<app>/`, `internal/config/` | Composition root: config, wiring, lifecycle |
-| **domain** | `internal/domain/` | Models, ports, business logic |
-| **api** | `internal/api/<transport>/` | Inbound adapters: invoke domain (HTTP, gRPC, CLI, cron, …) |
-| **data** | `internal/data/<kind>/<aggregate>/<backend>/` | Data movement: repos, queues, remote storage |
-
-**Dependency rule:** `api → domain ← data`. Domain imports neither `api` nor `data`.
-
-## `api` (broad sense)
-
-Everything that **initiates a use case** lives under `internal/api/`:
-
-```
-internal/api/
-  http/       # REST (this demo)
-  grpc/       # future
-  graphql/    # future
-  cli/        # future: in-process commands (same binary)
-  cron/       # future: scheduled jobs
+```text
+app.Run(&appResources, pipeline)
+  → Seed → Apply → Build → Transform → Resolve → App.Serve
 ```
 
-Handlers: parse input → call `domain/service/<name>` → map response. No business rules in `api`.
+| Step | Package | Role |
+|------|---------|------|
+| Seed | `builder` | Walk `AppResources`; register specs (`BuildConfig`) or deferred `NewResource` |
+| Apply | `ecfg` | Load env into specs from seed map |
+| Build | `builder` | `Spec.Build()` / `NewResource()` → resources in registry |
+| Transform | `res` + `obs` | Optional wrappers (metrics, tracing) |
+| Resolve | `sdi` | Inject deps from `Deps()` / `Inject()` |
+| Serve | `app` + `runner` | Signal → run pool → graceful stop |
 
-## Domain
+## AppResources
 
-### Shared models
+Single struct in `main` — catalog of everything in the process.
 
-Models used by more than one service or layer:
+### Field naming
 
-```
-internal/domain/model/
-  item.go
-  order.go
-```
+`{type}{subject}` — e.g. `RepoOrder`, `ServiceItem`, `ServerHTTPItem`.
 
-No `json` / `db` / transport tags — pure domain types.
+### Field kinds
 
-### Per-subdomain service
+Each field is **one resource slot** — either:
 
-Even in a narrow microservice, split by subdomain when needed:
+- **NewResourceer** — `NewResource()` at Build (no env block)
+- **BuildConfiger** — `BuildConfig()` → Spec/Config; env applies to spec; `Build()` → resource
 
-```
-internal/domain/service/<name>/
-  service.go      # Config, Build, Deps, Inject at top; then Service + methods
-  interface.go    # all ports/deps (driven + outbound); mockgen-friendly
-  model.go        # models used only by this subdomain (optional; often empty)
-```
+No third type. No duplicate config fields on the resource for ecfg.
 
-- **`interface.go`** — ports the service needs (repos, event publishers, …). Interface is declared by the consumer; implementation lives in `data/`.
-- **`service.go`** — wiring (`Config`, `Build`, `Deps`, `Inject`) stays at the **top** of the file, not in a separate `config.go`.
-- Service-local models stay in `model.go`; shared ones go to `domain/model/`.
-
-### Errors
-
-Domain errors live locally (e.g. `domain/errors.go` or per-service) for now.
-
-**Backlog:** org-wide shared errors package — not used yet.
-
-## Cross-cutting: logging
-
-**Backlog:** [github.com/omcrgnt/logger](https://github.com/omcrgnt/logger) + meta [`res/core/use`](https://github.com/omcrgnt/res/tree/main/core/use) — wired in demo via single blank import.
-
-### System package (zero-config)
-
-- Blank import in the binary: `import _ "github.com/omcrgnt/res/core/use"` pulls logger and telemetry system defaults.
-- In `init()`, logger registers in `res` with a **production-ready default** (stderr, structured output, sensible level). No `AppConfig` field required for most services.
-- Optional override: `logger.Config` in `AppConfig` → env prefix → `Build()` → `res`. Zero value = leave the default from `init` unchanged.
-
-### Public API
-
-- Only `*Ctx` functions (`InfoCtx`, `ErrorCtx`, …). No legacy calls without `context.Context`.
-- Attrs: `...any` (slog-style). Prefer benchmarks over custom attr types when choosing the surface.
-
-### Context and engine
-
-- **Singleton** log engine for the process. Do not fork or allocate a logger per request.
-- `context.Context` carries **observation attrs** (correlation_id, trace_id via `obs`), not a `*Logger`. Merge ctx attrs at write time on each call.
-
-### Where to log
-
-| Layer | Rule |
-|-------|------|
-| **domain** | Return errors; no logger in struct fields or `interface.go`. `ctx` for cancel/timeout/deadlines only. |
-| **api** | Log at boundaries (handlers, middleware): `logger.*Ctx(ctx, …)` after obs is attached. |
-| **data** | Log I/O failures and adapter diagnostics at the repo boundary. |
-
-### Bootstrap vs runtime
-
-- Before `ecfg.Parse` or on fatal startup paths: stdlib `log` / stderr is fine (no structured pipeline yet).
-- After successful startup: structured logging for the **full process lifetime** via `logger.*Ctx`.
-
-## `data`
-
-Everything needed to **store, fetch, or move data**. Naming: **`aggregate → backend`** (universal for template):
-
-```
-internal/data/
-  sync/
-    item/
-      memory/       # in-memory ItemRepository (this demo)
-      postgres/     # future
-      remote/       # future: REST/gRPC client to another service as repo
-    order/
-      postgres/     # future
-  async/
-    item/
-      kafka/        # future: consumers, producers
-    order/
-      nats/         # future
+```text
+AppResources field = resource (*item.Service, *app.App, …)
+  BuildConfiger:  resource.BuildConfig() → Spec/Config  →  Spec.Build() → resource
+  NewResourceer:  NewResource() → resource
 ```
 
-Standard files per repo module:
+### ecfg
 
-```
-internal/data/sync/<aggregate>/<backend>/
-  repo.go         # Config, Build at top; Repo + methods
-  model.go        # persistence/adapter models (db tags, etc.); optional, often empty
-```
+- Tagged fields: `ecfg:"BLOCK_NAME"` on the **resource** slot (for block prefix only).
+- Env shape comes from **Spec/Config** returned by `BuildConfig()`, not from resource fields.
+- Codegen (`ecfg-gen`) resolves spec type via `BuildConfig()` AST; runtime Apply writes into spec in seed map.
 
-- **In/out:** domain models from `domain/model/` (map inside repo if persistence model differs).
-- **Async** stays under `data/`, not `api` — data stream, not a public call contract.
+Domain suffix in env blocks where relevant: `SERVICE_ITEM`, `SERVER_HTTP_ITEM`, `SERVER_HTTP_ORDER`.
 
-## App pipeline
+## Domain layout
 
-[`cmd/demo/app.go`](cmd/demo/app.go):
-
-1. `ecfg.Parse[AppConfig]()` — load env
-2. `ecfg.Register(cfg, res.Default)` — app configs into registry
-3. `builder.Build(res.Default)` — materialize configs into resources
-4. `sdi.Resolve(res.Default)` — dedupe (`DefaultDedupPolicy` + `Remove`), then inject deps
-5. `runner.New(runnerPool{reg: res.Default}).Run / Stop` — start stoppable resources (HTTP server)
-
-`runnerPool` adapts `res.Registry` (`WalkEntries`) to `runner.Pool` (`Walk`). System defaults register as configs via `AddWithTags(..., TagReplaceable)` in library `init`, then `builder.Build` materializes them — not in app code.
-
-See [docs/res-sdi-coupling.md](docs/res-sdi-coupling.md) for res↔sdi design variants (ADR).
-
-Each module exposes `Config` with `Build() (any, error)`; wired resources implement `Deps()` / `Inject()` where needed.
-
-## Where to put new code
-
-| Adding | Location |
-|--------|----------|
-| Shared domain model | `internal/domain/model/<name>.go` |
-| Subdomain-only model | `internal/domain/service/<name>/model.go` |
-| Port (interface) | `internal/domain/service/<name>/interface.go` |
-| Business logic | `internal/domain/service/<name>/service.go` |
-| Domain errors | `internal/domain/errors.go` (local; org package — backlog) |
-| REST endpoint | `internal/api/http/` |
-| gRPC service | `internal/api/grpc/` |
-| DTO / request-response types | same package as transport under `internal/api/` |
-| Sync repo | `internal/data/sync/<aggregate>/<backend>/` |
-| Async producer/consumer | `internal/data/async/<aggregate>/<broker>/` |
-| AppConfig field | `internal/config/config.go` |
-| Binary entrypoint | `cmd/<app>/` |
-
-## AppConfig naming
-
-Field names match modules (`HTTP`, `ItemRepo`, `ItemService`, …), not generic names like `Controller`.
-
-```go
-type AppConfig struct {
-    ItemRepo    memory.Config   // data/sync/item/memory
-    ItemService item.Config     // domain/service/item
-    HTTP        http.Config
-    Metrics     http.MetricsConfig
-    HTTPServer  *srvhttp.Config[*http.API]
-}
+```text
+internal/
+  domain/          models, ports, services
+  data/sync/       repos (NewResourceer)
+  api/http/        HTTP adapters (NewResourceer), thin over domain ports
+cmd/demo/          AppResources + main
 ```
 
-## Tests
+Org stack: `app`, `builder`, `res`, `sdi`, `ecfg`, `runner`, `obs`, `srv-http`, `logger`, `telemetry` — versioned `github.com/omcrgnt/*` modules.
 
-- Domain/service: unit tests with `builder` + `sdi` on a minimal config struct
-- Data repos: test repo behaviour against the port contract
-- `go test ./...` from repo root
+Codegen on services: `sdigen` (Deps/Inject), `obsgen` (Observe).
+
+## Roles (examples)
+
+| Concern | Owner |
+|---------|--------|
+| Shutdown grace period | `app.Spec` → built `*app.App` |
+| Run/stop pool | stateless `runner.Runner` |
+| List max length | `item.Spec` → `*item.Service` |
+| HTTP listen addr | `srvhttp.Config` via `BuildConfig` on `*http.Server` or `*Config` |
+
+## Known gaps (backlog)
+
+- [ ] **sdi dedup** — pool-wide Replaceable dedup, not only types from `Deps()` stubs
+- [ ] **BuildConfig typing** — spec type inferred by AST; fragile for non-literal returns
+- [ ] **Symmetry** — order service has no Spec yet; HTTP item uses `http.Server` alias, order uses `srvhttp.Config` directly
+- [ ] **Full stack in demo** — logger/telemetry registered via `use` imports; not yet configurable through AppResources
+
+## References
+
+- [README.md](README.md) — commands, AppResources table
+- [env.md](env.md) — generated env docs
