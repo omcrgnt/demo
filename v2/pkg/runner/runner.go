@@ -9,7 +9,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// Runner runs and stops [Starter]/[Closer] resources from a [Pool].
+// Runner runs and stops [Starter]/[Closer] resources from a [res.Registry].
 type Runner struct{}
 
 func (r *Runner) NewResource() (any, error) {
@@ -20,30 +20,30 @@ type engine struct {
 	resources []any
 }
 
-func newEngine(pool Pool) *engine {
-	return &engine{resources: collect(pool)}
+func newEngine(reg res.Registry) *engine {
+	return &engine{resources: collect(reg)}
 }
 
-// New builds a runner from pool without registering a resource (tests).
-func New(pool Pool) *engine {
-	return newEngine(pool)
+// New builds a runner engine from reg without registering a resource (tests).
+func New(reg res.Registry) *engine {
+	return newEngine(reg)
 }
 
-func collect(pool Pool) []any {
+func collect(reg res.Registry) []any {
 	var resources []any
-	pool.WalkEntries(func(e res.Entry) bool {
+	reg.WalkEntries(func(e res.Entry) bool {
 		resources = append(resources, e.Value)
 		return true
 	})
 	return resources
 }
 
-func (r *Runner) Run(ctx context.Context, pool Pool) error {
-	return newEngine(pool).run(ctx)
+func (r *Runner) Run(ctx context.Context, reg res.Registry) error {
+	return newEngine(reg).run(ctx)
 }
 
-func (r *Runner) Stop(ctx context.Context, pool Pool) error {
-	return newEngine(pool).stop(ctx)
+func (r *Runner) Stop(ctx context.Context, reg res.Registry) error {
+	return newEngine(reg).stop(ctx)
 }
 
 func (e *engine) run(rctx context.Context) error {

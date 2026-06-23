@@ -7,6 +7,7 @@ import (
 	commonv1 "github.com/omcrgnt/proto/gen/go/common/v1"
 	"github.com/omcrgnt/demo/v2/pkg/builder"
 	"github.com/omcrgnt/demo/v2/pkg/res"
+	"github.com/omcrgnt/demo/v2/pkg/res/restest"
 	"github.com/omcrgnt/demo/v2/pkg/sdi"
 	"github.com/omcrgnt/demo/v2/pkg/telemetry"
 	"go.opentelemetry.io/otel"
@@ -14,9 +15,9 @@ import (
 
 func setupUseDefaults(t *testing.T) {
 	t.Helper()
-	res.ResetDefault()
-	_ = res.AddWithTags(telemetry.DefaultTraceConfig(), res.TagReplaceable)
-	if err := builder.Build(res.Default); err != nil {
+	restest.ResetGlobal()
+	_ = res.AddToGlobalWithTags(telemetry.DefaultTraceConfig(), res.TagReplaceable)
+	if err := builder.Build(res.Global()); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -24,7 +25,7 @@ func setupUseDefaults(t *testing.T) {
 func TestIntegration_resolveWithUseDefault(t *testing.T) {
 	setupUseDefaults(t)
 
-	if err := sdi.Resolve(res.Default); err != nil {
+	if err := sdi.Resolve(res.Global()); err != nil {
 		t.Fatal(err)
 	}
 
@@ -39,7 +40,7 @@ func TestIntegration_resolveWithUseDefault(t *testing.T) {
 func TestIntegration_dedupUserOverride(t *testing.T) {
 	setupUseDefaults(t)
 
-	if err := res.Add(telemetry.Config{
+	if err := res.Global().Add(telemetry.Config{
 		ServiceName: &commonv1.Label{Value: "demo"},
 		Host:        &commonv1.Host{Value: "127.0.0.1"},
 		Port:        &commonv1.Port{Value: 4318},
@@ -47,11 +48,11 @@ func TestIntegration_dedupUserOverride(t *testing.T) {
 	}); err != nil { //nolint:forbidigo // simulates ecfg.Register
 		t.Fatal(err)
 	}
-	if err := builder.Build(res.Default); err != nil {
+	if err := builder.Build(res.Global()); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := sdi.Resolve(res.Default); err != nil {
+	if err := sdi.Resolve(res.Global()); err != nil {
 		t.Fatal(err)
 	}
 

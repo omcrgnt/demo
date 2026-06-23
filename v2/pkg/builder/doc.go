@@ -21,7 +21,7 @@ Typical pipeline:
 	cfg, _ := ecfg.Parse(...)
 	ecfg.Register(cfg, res.Default)
 	builder.Build(res.Default)
-	res.Transform(...)
+	res.Default.Transform(...)
 	sdi.Resolve(res.Default)
 */
 package builder

@@ -2,6 +2,8 @@
 
 Isolated sandbox for the target architecture: single `go.mod`, org libs under `pkg/`, pipeline without `Resourcer`.
 
+See [ARCHITECTURE.md](ARCHITECTURE.md) for contracts, roles, and v2 → prod checklist.
+
 ## Pipeline
 
 Handled by [`pkg/app`](/opt/github/demo/v2/pkg/app):

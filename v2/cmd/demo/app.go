@@ -38,7 +38,7 @@ var appResources AppResources
 
 func main() {
 	pipeline := app.Pipeline{
-		Registry:   res.Default,
+		Registry:   res.Global(),
 		EnvPrefix:  envPrefix,
 		Transforms: []res.TransformFunc{obs.ApplyTransform},
 	}

@@ -10,6 +10,7 @@ import (
 	"github.com/omcrgnt/demo/v2/internal/domain/service/item"
 	"github.com/omcrgnt/demo/v2/pkg/builder"
 	"github.com/omcrgnt/demo/v2/pkg/res"
+	"github.com/omcrgnt/demo/v2/pkg/res/restest"
 	"github.com/omcrgnt/demo/v2/pkg/sdi"
 )
 
@@ -18,22 +19,22 @@ var testCtx = context.Background()
 func resolveService(t *testing.T, spec item.Spec) *item.Service {
 	t.Helper()
 
-	res.ResetDefault()
+	restest.ResetGlobal()
 	repo, err := memory.RepoRoot{}.NewResource()
 	if err != nil {
 		t.Fatal(err)
 	}
-	_ = res.Add(repo)
-	_ = res.Add(spec)
+	_ = res.Global().Add(repo)
+	_ = res.Global().Add(spec)
 
-	if err := builder.Build(res.Default); err != nil {
+	if err := builder.Build(res.Global()); err != nil {
 		t.Fatal(err)
 	}
-	if err := sdi.Resolve(res.Default); err != nil {
+	if err := sdi.Resolve(res.Global()); err != nil {
 		t.Fatal(err)
 	}
 
-	svcAny, err := res.GetOneByType(reflect.TypeOf((*item.Service)(nil)))
+	svcAny, err := res.Global().GetOneByType(reflect.TypeOf((*item.Service)(nil)))
 	if err != nil {
 		t.Fatal(err)
 	}

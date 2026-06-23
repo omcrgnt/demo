@@ -1,4 +1,4 @@
-// Package use registers telemetry system defaults in res.Default.
+// Package use registers telemetry system defaults in res.Global().
 //
 // Import for side effects at the app composition root:
 //
@@ -11,5 +11,5 @@ import (
 )
 
 func init() {
-	_ = res.AddWithTags(telemetry.DefaultTraceConfig(), res.TagReplaceable)
+	_ = res.AddToGlobalWithTags(telemetry.DefaultTraceConfig(), res.TagReplaceable)
 }

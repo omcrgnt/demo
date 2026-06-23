@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/omcrgnt/demo/v2/pkg/builder"
+	"github.com/omcrgnt/demo/v2/pkg/res"
 	"github.com/omcrgnt/demo/v2/pkg/runner"
 )
 
@@ -71,13 +72,13 @@ func (a *App) GracePeriod() time.Duration {
 }
 
 // Serve runs until ctx is cancelled, then stops resources via injected [runner.Runner].
-func (a *App) Serve(ctx context.Context, pool runner.Pool) error {
+func (a *App) Serve(ctx context.Context, reg res.Registry) error {
 	if a.runner == nil {
 		return fmt.Errorf("app: runner not injected")
 	}
 
 	go func() {
-		if err := a.runner.Run(ctx, pool); err != nil {
+		if err := a.runner.Run(ctx, reg); err != nil {
 			slog.Error("runner failed", "err", err)
 		}
 	}()
@@ -86,7 +87,7 @@ func (a *App) Serve(ctx context.Context, pool runner.Pool) error {
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), a.GracePeriod())
 	defer cancel()
-	if err := a.runner.Stop(shutdownCtx, pool); err != nil {
+	if err := a.runner.Stop(shutdownCtx, reg); err != nil {
 		return fmt.Errorf("app: shutdown: %w", err)
 	}
 	return nil

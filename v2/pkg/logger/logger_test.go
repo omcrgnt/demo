@@ -10,6 +10,7 @@ import (
 
 	"github.com/omcrgnt/demo/v2/pkg/builder"
 	"github.com/omcrgnt/demo/v2/pkg/res"
+	"github.com/omcrgnt/demo/v2/pkg/res/restest"
 	"github.com/omcrgnt/demo/v2/pkg/sdi"
 	loggerv1 "github.com/omcrgnt/proto/gen/go/logger/v1"
 )
@@ -24,15 +25,15 @@ func (t *testOutput) markerLoggerOutput() {}
 
 // setupUseDefaults clears res and registers system Output + Log, as logger/use init does.
 func setupUseDefaults() {
-	res.ResetDefault()
+	restest.ResetGlobal()
 	active = noopLogger{}
-	_ = res.AddWithTags(DefaultLogConfig(), res.TagReplaceable)
-	_ = res.AddWithTags(DefaultStdoutConfig(), res.TagReplaceable)
-	_ = builder.Build(res.Default)
+	_ = res.AddToGlobalWithTags(DefaultLogConfig(), res.TagReplaceable)
+	_ = res.AddToGlobalWithTags(DefaultStdoutConfig(), res.TagReplaceable)
+	_ = builder.Build(res.Global())
 }
 
 func TestNoop_withoutRegistry(t *testing.T) {
-	res.ResetDefault()
+	restest.ResetGlobal()
 	active = noopLogger{}
 
 	Info(context.Background(), "silent")
@@ -40,21 +41,21 @@ func TestNoop_withoutRegistry(t *testing.T) {
 }
 
 func TestConfig_build(t *testing.T) {
-	res.ResetDefault()
+	restest.ResetGlobal()
 	active = noopLogger{}
-	if err := res.Add(OutputStdoutConfig{}); err != nil { //nolint:forbidigo // simulates ecfg.Register
+	if err := res.Global().Add(OutputStdoutConfig{}); err != nil { //nolint:forbidigo // simulates ecfg.Register
 		t.Fatal(err)
 	}
-	if err := res.Add(Config{
+	if err := res.Global().Add(Config{
 		Level:  &loggerv1.Level{Value: "info"},
 		Format: &loggerv1.Format{Value: "json"},
 	}); err != nil { //nolint:forbidigo // simulates ecfg.Register
 		t.Fatal(err)
 	}
-	if err := builder.Build(res.Default); err != nil {
+	if err := builder.Build(res.Global()); err != nil {
 		t.Fatal(err)
 	}
-	if err := sdi.Resolve(res.Default); err != nil {
+	if err := sdi.Resolve(res.Global()); err != nil {
 		t.Fatal(err)
 	}
 
@@ -63,14 +64,14 @@ func TestConfig_build(t *testing.T) {
 
 func TestDefault_fromRegistry(t *testing.T) {
 	out := &testOutput{}
-	res.ResetDefault()
+	restest.ResetGlobal()
 	active = noopLogger{}
-	_ = res.AddWithTags(out, res.TagReplaceable)
-	_ = res.AddWithTags(DefaultLogConfig(), res.TagReplaceable)
-	if err := builder.Build(res.Default); err != nil {
+	_ = res.Global().AddWithTags(out, res.TagReplaceable)
+	_ = res.Global().AddWithTags(DefaultLogConfig(), res.TagReplaceable)
+	if err := builder.Build(res.Global()); err != nil {
 		t.Fatal(err)
 	}
-	if err := sdi.Resolve(res.Default); err != nil {
+	if err := sdi.Resolve(res.Global()); err != nil {
 		t.Fatal(err)
 	}
 
@@ -99,22 +100,22 @@ func TestLogImpl_Inject(t *testing.T) {
 }
 
 func TestOutputStdoutConfig(t *testing.T) {
-	res.ResetDefault()
+	restest.ResetGlobal()
 	active = noopLogger{}
 
-	if err := res.Add(OutputStdoutConfig{}); err != nil { //nolint:forbidigo // simulates ecfg.Register
+	if err := res.Global().Add(OutputStdoutConfig{}); err != nil { //nolint:forbidigo // simulates ecfg.Register
 		t.Fatal(err)
 	}
-	if err := res.Add(Config{
+	if err := res.Global().Add(Config{
 		Level:  &loggerv1.Level{Value: "info"},
 		Format: &loggerv1.Format{Value: "text"},
 	}); err != nil { //nolint:forbidigo // simulates ecfg.Register
 		t.Fatal(err)
 	}
-	if err := builder.Build(res.Default); err != nil {
+	if err := builder.Build(res.Global()); err != nil {
 		t.Fatal(err)
 	}
-	if err := sdi.Resolve(res.Default); err != nil {
+	if err := sdi.Resolve(res.Global()); err != nil {
 		t.Fatal(err)
 	}
 
@@ -122,25 +123,25 @@ func TestOutputStdoutConfig(t *testing.T) {
 }
 
 func TestOutputFileConfig(t *testing.T) {
-	res.ResetDefault()
+	restest.ResetGlobal()
 	active = noopLogger{}
 
 	dir := t.TempDir()
 	path := dir + "/app.log"
 
-	if err := res.Add(OutputFileConfig{Path: path}); err != nil { //nolint:forbidigo // simulates ecfg.Register
+	if err := res.Global().Add(OutputFileConfig{Path: path}); err != nil { //nolint:forbidigo // simulates ecfg.Register
 		t.Fatal(err)
 	}
-	if err := res.Add(Config{
+	if err := res.Global().Add(Config{
 		Level:  &loggerv1.Level{Value: "info"},
 		Format: &loggerv1.Format{Value: "text"},
 	}); err != nil { //nolint:forbidigo // simulates ecfg.Register
 		t.Fatal(err)
 	}
-	if err := builder.Build(res.Default); err != nil {
+	if err := builder.Build(res.Global()); err != nil {
 		t.Fatal(err)
 	}
-	if err := sdi.Resolve(res.Default); err != nil {
+	if err := sdi.Resolve(res.Global()); err != nil {
 		t.Fatal(err)
 	}
 
@@ -171,7 +172,7 @@ func TestInfo_afterResolve(t *testing.T) {
 	os.Stdout = w
 	t.Cleanup(func() { os.Stdout = old })
 
-	if err := sdi.Resolve(res.Default); err != nil {
+	if err := sdi.Resolve(res.Global()); err != nil {
 		t.Fatal(err)
 	}
 

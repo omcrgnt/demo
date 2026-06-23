@@ -1,4 +1,4 @@
-// Package use registers logger system defaults in res.Default.
+// Package use registers logger system defaults in res.Global().
 //
 // Import for side effects at the app composition root (main or a meta use package):
 //
@@ -11,6 +11,6 @@ import (
 )
 
 func init() {
-	_ = res.AddWithTags(logger.DefaultLogConfig(), res.TagReplaceable)
-	_ = res.AddWithTags(logger.DefaultStdoutConfig(), res.TagReplaceable)
+	_ = res.AddToGlobalWithTags(logger.DefaultLogConfig(), res.TagReplaceable)
+	_ = res.AddToGlobalWithTags(logger.DefaultStdoutConfig(), res.TagReplaceable)
 }
