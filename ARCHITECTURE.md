@@ -72,12 +72,18 @@ Codegen on services: `sdigen` (Deps/Inject), `obsgen` (Observe).
 | List max length | `item.Spec` → `*item.Service` |
 | HTTP listen addr | `srvhttp.Config` via `BuildConfig` on `*http.Server` or `*Config` |
 
+## Decisions
+
+- **`BuildConfiger` → `Configurable`** — wire type for resources that accept configuration (env, override via `AppResources`). Name is intentional: configuration can be applied to the resource. Implementation rename still pending.
+
 ## Known gaps (backlog)
 
 - [ ] **sdi dedup** — pool-wide Replaceable dedup, not only types from `Deps()` stubs
 - [ ] **BuildConfig typing** — spec type inferred by AST; fragile for non-literal returns
 - [ ] **Symmetry** — order service has no Spec yet; HTTP item uses `http.Server` alias, order uses `srvhttp.Config` directly
 - [ ] **Full stack in demo** — logger/telemetry registered via `use` imports; not yet configurable through AppResources
+- [ ] **Rename `BuildConfiger` → `Configurable`** — apply across `res` / `builder` / libs (interface + docs)
+- [ ] **Rename `NewResourceer`** — current name is awkward; pick a clearer wire name for resources without env/config (e.g. `Resourceful`, `Instantiable`, or domain-style `*Root` types with `NewResource()`)
 
 ## References
 
