@@ -22,10 +22,6 @@ func (s *Service) RegisterMetrics(reg *prometheus.Registry) error {
 	return reg.Register(s.metrics.ops)
 }
 
-func (o *observeService) RegisterMetrics(reg *prometheus.Registry) error {
-	return o.Service.RegisterMetrics(reg)
-}
-
 func (s *Service) recordOp(operation, result string) {
 	if s.metrics == nil || s.metrics.ops == nil {
 		return
@@ -47,7 +43,4 @@ func classifyErr(err error) string {
 	}
 }
 
-var (
-	_ metrics.MetricsContributor = (*Service)(nil)
-	_ metrics.MetricsContributor = (*observeService)(nil)
-)
+var _ metrics.MetricsContributor = (*Service)(nil)

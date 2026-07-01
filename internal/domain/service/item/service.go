@@ -115,33 +115,41 @@ func (s *Service) Create(ctx context.Context, title string) (model.Item, error) 
 func (s *Service) Update(ctx context.Context, id, title string) (model.Item, error) {
 	if strings.TrimSpace(id) == "" || strings.TrimSpace(title) == "" {
 		logger.Warn(ctx, "item update rejected", "id", id, "reason", "empty id or title")
+		s.recordOp("update", "invalid")
 		return model.Item{}, domain.ErrInvalidInput
 	}
 	item, err := s.repo.SetItem(id, title)
 	if errors.Is(err, domain.ErrNotFound) {
 		logger.Warn(ctx, "item update not found", "id", id)
+		s.recordOp("update", "not_found")
 		return model.Item{}, domain.ErrNotFound
 	}
 	if err != nil {
 		logger.Error(ctx, "item update failed", "id", id, "err", err)
+		s.recordOp("update", classifyErr(err))
 		return model.Item{}, err
 	}
 	logger.Info(ctx, "item update", "id", item.ID, "title", item.Title)
+	s.recordOp("update", "ok")
 	return item, nil
 }
 
 func (s *Service) Delete(ctx context.Context, id string) error {
 	if strings.TrimSpace(id) == "" {
 		logger.Warn(ctx, "item delete rejected", "reason", "empty id")
+		s.recordOp("delete", "invalid")
 		return domain.ErrInvalidInput
 	}
 	if err := s.repo.RemoveItem(id); errors.Is(err, domain.ErrNotFound) {
 		logger.Warn(ctx, "item delete not found", "id", id)
+		s.recordOp("delete", "not_found")
 		return domain.ErrNotFound
 	} else if err != nil {
 		logger.Error(ctx, "item delete failed", "id", id, "err", err)
+		s.recordOp("delete", classifyErr(err))
 		return err
 	}
 	logger.Info(ctx, "item delete", "id", id)
+	s.recordOp("delete", "ok")
 	return nil
 }

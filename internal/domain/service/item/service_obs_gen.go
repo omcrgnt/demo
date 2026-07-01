@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/omcrgnt/demo/internal/domain/model"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
 )
@@ -36,6 +37,10 @@ func (o *observeService) Inject(args []any) {
 
 func (o *observeService) Label() string {
 	return o.Service.Label()
+}
+
+func (o *observeService) RegisterMetrics(reg *prometheus.Registry) error {
+	return o.Service.RegisterMetrics(reg)
 }
 
 func (o *observeService) List(ctx context.Context) ([]model.Item, error) {
