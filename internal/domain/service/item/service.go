@@ -11,7 +11,6 @@ import (
 
 	"github.com/omcrgnt/demo/internal/domain"
 	"github.com/omcrgnt/demo/internal/domain/model"
-	"github.com/omcrgnt/builder"
 	"github.com/omcrgnt/logger"
 )
 
@@ -39,10 +38,7 @@ type deps struct {
 type Service struct {
 	deps
 	maxListLen int
-}
-
-func (s *Service) BuildConfig() (builder.Builder, error) {
-	return &Spec{}, nil
+	metrics    *serviceMetrics
 }
 
 // Spec is the item service config; [Spec.Build] returns [*Service].
@@ -66,44 +62,53 @@ func (s *Service) List(ctx context.Context) ([]model.Item, error) {
 	items, err := s.repo.AllItems()
 	if err != nil {
 		logger.Error(ctx, "item list failed", "err", err)
+		s.recordOp("list", classifyErr(err))
 		return nil, err
 	}
 	if s.maxListLen > 0 && len(items) > s.maxListLen {
 		items = items[:s.maxListLen]
 	}
 	logger.Info(ctx, "item list", "count", len(items), "max", s.maxListLen)
+	s.recordOp("list", "ok")
 	return items, nil
 }
 
 func (s *Service) Get(ctx context.Context, id string) (model.Item, error) {
 	if strings.TrimSpace(id) == "" {
 		logger.Warn(ctx, "item get rejected", "reason", "empty id")
+		s.recordOp("get", "invalid")
 		return model.Item{}, domain.ErrInvalidInput
 	}
 	item, err := s.repo.ItemByID(id)
 	if errors.Is(err, domain.ErrNotFound) {
 		logger.Warn(ctx, "item get not found", "id", id)
+		s.recordOp("get", "not_found")
 		return model.Item{}, domain.ErrNotFound
 	}
 	if err != nil {
 		logger.Error(ctx, "item get failed", "id", id, "err", err)
+		s.recordOp("get", classifyErr(err))
 		return model.Item{}, err
 	}
 	logger.Info(ctx, "item get", "id", item.ID, "title", item.Title)
+	s.recordOp("get", "ok")
 	return item, nil
 }
 
 func (s *Service) Create(ctx context.Context, title string) (model.Item, error) {
 	if strings.TrimSpace(title) == "" {
 		logger.Warn(ctx, "item create rejected", "reason", "empty title")
+		s.recordOp("create", "invalid")
 		return model.Item{}, domain.ErrInvalidInput
 	}
 	item, err := s.repo.AddItem(title)
 	if err != nil {
 		logger.Error(ctx, "item create failed", "title", title, "err", err)
+		s.recordOp("create", classifyErr(err))
 		return model.Item{}, err
 	}
 	logger.Info(ctx, "item create", "id", item.ID, "title", item.Title)
+	s.recordOp("create", "ok")
 	return item, nil
 }
 

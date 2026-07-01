@@ -13,13 +13,13 @@ tasks:
   gen:
     desc: Run go generate
     cmds:
-      - go generate ./cmd/demo/ ./internal/domain/service/item/ ./internal/domain/service/order/
+      - go generate . ./internal/domain/service/item/ ./internal/domain/service/order/
 
   b-app:
     desc: Compile application to bin/
     cmds:
       - mkdir -p {{.BIN_DIR}}
-      - go build -o {{.BIN}} ./cmd/demo/
+      - go build -o {{.BIN}} .
 
   r-app:
     desc: Build, load .env and run application
@@ -47,6 +47,11 @@ tasks:
     desc: Tail developer environment logs
     cmds:
       - docker compose -f {{.DE_COMPOSE_FILE}} logs -f
+
+  de:prune:
+    desc: Prune developer environment
+    cmds:
+      - docker compose -f {{.DE_COMPOSE_FILE}} down --volumes --rmi all
 
   lint:
     desc: Run org golangci app profile

@@ -1,91 +1,44 @@
-# Architecture
+# demo architecture
 
-Reference app assembly: one `go.mod`, org libs from `github.com/omcrgnt/*`, explicit pipeline (no legacy `Resourcer`).
+Reference app on **app v0.21**: explicit `AppResources` catalog, `unique.Global()` registry, blank-import defaults.
 
 ## Pipeline
 
 ```text
-app.Run(&appResources, pipeline)
-  → Seed → Apply → Build → Transform → Resolve → App.Serve
+app.Run(&appResources, Pipeline{Registry: unique.Global(), ...})
+  fill → ecfg.LoadEnv → materialize → unique.Merge → Transform → sdi.Resolve → Serve
 ```
 
-| Step | Package | Role |
-|------|---------|------|
-| Seed | `builder` | Walk `AppResources`; register specs (`BuildConfig`) or deferred `NewResource` |
-| Apply | `ecfg` | Load env into specs from seed map |
-| Build | `builder` | `Spec.Build()` / `NewResource()` → resources in registry |
-| Transform | `res` + `obs` | Optional wrappers (metrics, tracing) |
-| Resolve | `sdi` | Inject deps from `Deps()` / `Inject()` |
-| Serve | `app` + `runner` | Signal → run pool → graceful stop |
-
-## AppResources
-
-Single struct in `main` — catalog of everything in the process.
-
-### Field naming
-
-`{type}{subject}` — e.g. `RepoOrder`, `ServiceItem`, `ServerHTTPItem`.
-
-### Field kinds
-
-Each field is **one resource slot** — either:
-
-- **NewResourceer** — `NewResource()` at Build (no env block)
-- **BuildConfiger** — `BuildConfig()` → Spec/Config; env applies to spec; `Build()` → resource
-
-No third type. No duplicate config fields on the resource for ecfg.
+## Metrics (v0.21)
 
 ```text
-AppResources field = resource (*item.Service, *app.App, …)
-  BuildConfiger:  resource.BuildConfig() → Spec/Config  →  Spec.Build() → resource
-  NewResourceer:  NewResource() → resource
+srv-http/use     → HTTPMetrics (MetricsContributor + slok Recorder), TagFixed
+ops/metrics/use  → *prometheus.Registry + metrics.Actuator
+ops/transport/http/use → probe + ops Handler + DefaultServer
+
+Resolve:
+  metrics.Actuator.Inject → RegisterMetrics(reg) on HTTPMetrics + domain contributors
+  srv-http servers        → shared metrics.Recorder (HTTPMetrics)
+  ops Handler             → /livez /readyz /healthz /metrics on OPS_HTTP port
 ```
 
-### ecfg
+One registry, one slok recorder, N srv-http servers (distinct `Service` label).
 
-- Tagged fields: `ecfg:"BLOCK_NAME"` on the **resource** slot (for block prefix only).
-- Env shape comes from **Spec/Config** returned by `BuildConfig()`, not from resource fields.
-- Codegen (`ecfg-gen`) resolves spec type via `BuildConfig()` AST; runtime Apply writes into spec in seed map.
+## Known gaps (local)
 
-Domain suffix in env blocks where relevant: `SERVICE_ITEM`, `SERVER_HTTP_ITEM`, `SERVER_HTTP_ORDER`.
+Demo-only gaps: [backlog/items/demo-reference-gaps.md](https://github.com/omcrgnt/backlog/blob/main/items/demo-reference-gaps.md).
 
-## Domain layout
+## Org backlog
 
-```text
-internal/
-  domain/          models, ports, services
-  data/sync/       repos (NewResourceer)
-  api/http/        HTTP adapters (NewResourceer), thin over domain ports
-cmd/demo/          AppResources + main
-```
+Cross-repo themes live in [github.com/omcrgnt/backlog](https://github.com/omcrgnt/backlog):
 
-Org stack: `app`, `builder`, `res`, `sdi`, `ecfg`, `runner`, `obs`, `srv-http`, `logger`, `telemetry` — versioned `github.com/omcrgnt/*` modules.
-
-Codegen on services: `sdigen` (Deps/Inject), `obsgen` (Observe).
-
-## Roles (examples)
-
-| Concern | Owner |
-|---------|--------|
-| Shutdown grace period | `app.Spec` → built `*app.App` |
-| Run/stop pool | stateless `runner.Runner` |
-| List max length | `item.Spec` → `*item.Service` |
-| HTTP listen addr | `srvhttp.Config` via `BuildConfig` on `*http.Server` or `*Config` |
-
-## Decisions
-
-- **`BuildConfiger` → `Configurable`** — wire type for resources that accept configuration (env, override via `AppResources`). Name is intentional: configuration can be applied to the resource. Implementation rename still pending.
-
-## Known gaps (backlog)
-
-- [ ] **sdi dedup** — pool-wide Replaceable dedup, not only types from `Deps()` stubs
-- [ ] **BuildConfig typing** — spec type inferred by AST; fragile for non-literal returns
-- [ ] **Symmetry** — order service has no Spec yet; HTTP item uses `http.Server` alias, order uses `srvhttp.Config` directly
-- [ ] **Full stack in demo** — logger/telemetry registered via `use` imports; not yet configurable through AppResources
-- [ ] **Rename `BuildConfiger` → `Configurable`** — apply across `res` / `builder` / libs (interface + docs)
-- [ ] **Rename `NewResourceer`** — current name is awkward; pick a clearer wire name for resources without env/config (e.g. `Resourceful`, `Instantiable`, or domain-style `*Root` types with `NewResource()`)
-
-## References
-
-- [README.md](README.md) — commands, AppResources table
-- [env.md](env.md) — generated env docs
+| Theme | Item |
+|-------|------|
+| Drop `builder`, srv-http v0.21 publish | [drop-builder-app-v21](https://github.com/omcrgnt/backlog/blob/main/items/drop-builder-app-v21.md) |
+| Configurable / Blueprint naming | [app-catalog-naming](https://github.com/omcrgnt/backlog/blob/main/items/app-catalog-naming.md) |
+| ecfg-gen typing, CustomTag | [ecfg-res-custom-tags](https://github.com/omcrgnt/backlog/blob/main/items/ecfg-res-custom-tags.md) |
+| sdi DependencyOrder, Many warn | [sdi-v21-followups](https://github.com/omcrgnt/backlog/blob/main/items/sdi-v21-followups.md) |
+| ops probe + metrics | [ops-probe-v1-followups](https://github.com/omcrgnt/backlog/blob/main/items/ops-probe-v1-followups.md) |
+| srv-http defer listen | [srv-http-defer-listen](https://github.com/omcrgnt/backlog/blob/main/items/srv-http-defer-listen.md) |
+| shared Taskfiles | [org-devtools-taskfiles](https://github.com/omcrgnt/backlog/blob/main/items/org-devtools-taskfiles.md) |
+| local dev composer | [decompose-local-dev](https://github.com/omcrgnt/backlog/blob/main/items/decompose-local-dev.md) |
