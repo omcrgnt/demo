@@ -13,13 +13,13 @@ tasks:
   gen:
     desc: Run go generate
     cmds:
-      - go generate . ./internal/domain/service/item/ ./internal/domain/service/order/
+      - go generate ./cmd/app ./internal/domain/service/item/ ./internal/domain/service/order/
 
   b-app:
     desc: Compile application to bin/
     cmds:
       - mkdir -p {{.BIN_DIR}}
-      - go build -o {{.BIN}} .
+      - go build -o {{.BIN}} ./cmd/app
 
   r-app:
     desc: Build, load .env and run application

@@ -24,6 +24,10 @@ Resolve:
 
 One registry, one slok recorder, N srv-http servers (distinct `Service` label).
 
+## HTTP catalog (srv-http v0.22+)
+
+Domain HTTP slots use `srvhttp.Server[T]` on `AppResources` (`cmd/app`). Item service: `item.ServiceRoot`; ops HTTP: `ophttp.Config` — each implements `BuildConfig()` in its lib.
+
 ## Known gaps (local)
 
 Demo-only gaps: [backlog/items/demo-reference-gaps.md](https://github.com/omcrgnt/backlog/blob/main/items/demo-reference-gaps.md).

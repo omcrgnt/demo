@@ -28,7 +28,7 @@ func TestAppResources_Bootstrap(t *testing.T) {
 	t.Setenv("DEMO_OPS_HTTP_PORT", "19090")
 
 	reg := testRegistry(t)
-	var ar AppResources
+	var ar _appResources
 
 	if _, err := app.Bootstrap(&ar, app.Pipeline{
 		Registry:  reg,

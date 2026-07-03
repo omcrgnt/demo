@@ -57,13 +57,3 @@ func TestRepo_CRUD(t *testing.T) {
 		t.Fatalf("expected ErrNotFound, got %v", err)
 	}
 }
-
-func TestRepoRoot_NewResource(t *testing.T) {
-	res, err := memory.RepoRoot{}.NewResource()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, ok := res.(*memory.Repo); !ok {
-		t.Fatalf("expected *memory.Repo, got %T", res)
-	}
-}

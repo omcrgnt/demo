@@ -8,13 +8,6 @@ import (
 	"github.com/omcrgnt/demo/internal/domain/model"
 )
 
-// RepoRoot is the AppResources wire type for the order repository.
-type RepoRoot struct{}
-
-func (RepoRoot) NewResource() (any, error) {
-	return NewRepo(), nil
-}
-
 type Repo struct {
 	mu     sync.RWMutex
 	orders map[string]model.Order
@@ -24,6 +17,10 @@ func NewRepo() *Repo {
 	return &Repo{
 		orders: make(map[string]model.Order),
 	}
+}
+
+func (*Repo) NewResource() (any, error) {
+	return NewRepo(), nil
 }
 
 func (r *Repo) AllOrders() ([]model.Order, error) {

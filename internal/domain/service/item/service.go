@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/omcrgnt/app"
 	"github.com/omcrgnt/demo/internal/domain"
 	"github.com/omcrgnt/demo/internal/domain/model"
 	"github.com/omcrgnt/logger"
@@ -34,13 +35,6 @@ type deps struct {
 	repo ItemRepository
 }
 
-// Service is the item domain service resource.
-type Service struct {
-	deps
-	maxListLen int
-	metrics    *serviceMetrics
-}
-
 // Spec is the item service config; [Spec.Build] returns [*Service].
 type Spec struct {
 	MaxListLen MaxListLen
@@ -52,6 +46,17 @@ func (s Spec) Build() (any, error) {
 		max = defaultMaxListLen
 	}
 	return &Service{maxListLen: max}, nil
+}
+
+// Service is the item domain service resource.
+type Service struct {
+	deps
+	maxListLen int
+	metrics    *serviceMetrics
+}
+
+func (*Service) BuildConfig() (app.Materializer, error) {
+	return &Spec{}, nil
 }
 
 func (s *Service) Label() string {

@@ -72,8 +72,8 @@ func TestRepo_NotFound(t *testing.T) {
 	}
 }
 
-func TestRepoRoot_NewResource(t *testing.T) {
-	res, err := memory.RepoRoot{}.NewResource()
+func TestRepo_NewResource(t *testing.T) {
+	res, err := (&memory.Repo{}).NewResource()
 	if err != nil {
 		t.Fatal(err)
 	}

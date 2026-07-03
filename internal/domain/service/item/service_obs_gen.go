@@ -40,7 +40,11 @@ func (o *observeService) Label() string {
 }
 
 func (o *observeService) RegisterMetrics(reg *prometheus.Registry) error {
-	return o.Service.RegisterMetrics(reg)
+	err := o.Service.RegisterMetrics(reg)
+	if err != nil {
+		return fmt.Errorf("[%s] RegisterMetrics: %w", o.label, err)
+	}
+	return err
 }
 
 func (o *observeService) List(ctx context.Context) ([]model.Item, error) {

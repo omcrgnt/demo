@@ -4,6 +4,15 @@ Reference application for the target architecture: single `go.mod`, org libs fro
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for contracts, roles, and backlog.
 
+## Layout
+
+```text
+cmd/app/           main, AppResources catalog
+internal/          domain, api, data
+.env.template      ecfg-gen output (repo root)
+env.md             ecfg usage docs
+```
+
 ## Pipeline
 
 Handled by [`github.com/omcrgnt/app`](https://github.com/omcrgnt/app) v0.21:
@@ -24,13 +33,13 @@ Fields follow `{type}{subject}` (e.g. `RepoOrder`, `ServiceItem`).
 | Field | Mechanism |
 |-------|-----------|
 | `RepoItem` | [ResourceFactory] → `*memory.Repo` |
-| `ServiceItem` | `serviceItemWire` [Configurable] → `item.Spec` |
+| `ServiceItem` | `item.ServiceRoot` [Configurable] → `item.Spec` |
 | `RepoOrder` | [ResourceFactory] → `*ordermemory.Repo` |
 | `ServiceOrder` | [ResourceFactory] → `*order.Service` |
-| `ServerHTTPOps` | `serverOpsHTTPWire` [Configurable] → `ops/transport/http.Config` |
-| `ServerHTTPItem` | `serverHTTPItemWire` [Configurable] → `srvhttp.Config[*http.API]` |
+| `ServerHTTPOps` | `ophttp.Config` [Configurable] → same (Build → systemServer) |
+| `ServerHTTPItem` | `srvhttp.Server[*http.API]` [Configurable] → `srvhttp.Config[*http.API]` |
 | `APIItem` | [ResourceFactory] |
-| `ServerHTTPOrder` | `serverHTTPOrderWire` [Configurable] → `srvhttp.Config[*orderhttp.API]` |
+| `ServerHTTPOrder` | `srvhttp.Server[*orderhttp.API]` [Configurable] → `srvhttp.Config[*orderhttp.API]` |
 | `APIOrder` | [ResourceFactory] |
 
 HTTP metrics: [`srv-http/use`](https://github.com/omcrgnt/srv-http) registers shared `HTTPMetrics` (slok recorder); [`ops/metrics/use`](https://github.com/omcrgnt/ops) provides registry + actuator. Scrape via ops `:9090/metrics` (default).
@@ -78,6 +87,6 @@ curl -s :9090/metrics | head
 ## Notes
 
 - Stack: `app`, `ecfg`, `res`, `sdi`, `runner`, `obs`, `srv-http`, `ops`, `logger`, `telemetry` at org v0.21 / v0.22.
-- Configurable catalog slots use wire types in `catalog_wire.go` (return `app.Materializer`).
-- Temporary `replace` for local dev: `builder`, `ops`, `srv-http` — see org [backlog](https://github.com/omcrgnt/backlog).
+- Catalog slots with `BuildConfig` live in domain/ops/srv-http libs (`item.ServiceRoot`, `ophttp.Config`, `srvhttp.Server[T]`). No `catalog_wire.go` in demo.
+- Temporary `replace` for local dev: `builder`, `ecfg`, `ops` — see org [backlog](https://github.com/omcrgnt/backlog).
 - External require: `github.com/omcrgnt/proto/gen/go` (srv-http Label/Host/Port).

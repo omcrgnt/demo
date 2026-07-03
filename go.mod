@@ -9,11 +9,12 @@ require (
 	github.com/omcrgnt/builder v0.20.2
 	github.com/omcrgnt/logger v0.21.1
 	github.com/omcrgnt/obs v0.20.1
-	github.com/omcrgnt/ops v0.21.1
+	github.com/omcrgnt/ops v0.21.2
 	github.com/omcrgnt/res v0.22.0
 	github.com/omcrgnt/sdi v0.21.0
-	github.com/omcrgnt/srv-http v0.21.3
+	github.com/omcrgnt/srv-http v0.22.0
 	github.com/omcrgnt/telemetry v0.21.1
+	github.com/prometheus/client_golang v1.23.2
 	go.opentelemetry.io/otel v1.44.0
 )
 
@@ -34,7 +35,6 @@ require (
 	github.com/omcrgnt/ecfg v0.21.2 // indirect
 	github.com/omcrgnt/proto/gen/go v0.3.0 // indirect
 	github.com/omcrgnt/runner v0.21.0 // indirect
-	github.com/prometheus/client_golang v1.23.2 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.69.0 // indirect
 	github.com/prometheus/procfs v0.21.0 // indirect
@@ -63,3 +63,5 @@ require (
 )
 
 replace github.com/omcrgnt/builder => ../builder
+
+replace github.com/omcrgnt/ecfg => ../ecfg

@@ -4,14 +4,6 @@ Copy `.env.template` to `.env` and set values. See `.env.example` for local defa
 
 **Prefix:** `DEMO`
 
-## OPS_HTTP
-
-| Variable | Description |
-|----------|-------------|
-| `DEMO_OPS_HTTP_HOST` | URL или IP |
-| `DEMO_OPS_HTTP_LABEL` | Метка сущности: по шаблону ^[a-z][a-z0-9_]{1,31}$ |
-| `DEMO_OPS_HTTP_PORT` | Порт сервера: 1-65535 |
-
 ## SERVER_HTTP_ITEM
 
 | Variable | Description |

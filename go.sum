@@ -43,14 +43,12 @@ github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/omcrgnt/app v0.21.0 h1:NptE8BxRqvTugJTOP5e6MQwlbeejrxhXtjZxO1rjoRo=
 github.com/omcrgnt/app v0.21.0/go.mod h1:tddwLAPOr+HYKQAvkVIRY94Xwi/y5jHy+QxJuzdr2ZA=
-github.com/omcrgnt/ecfg v0.21.2 h1:c8mB2DiGl6J6kaRUlxVmzj2iHGZUJvqJyWUUIjd6xdA=
-github.com/omcrgnt/ecfg v0.21.2/go.mod h1:G3MgyTnJ7ufQFQDgjFquloGOntcNdgx9Zbkmr9RQ+hI=
 github.com/omcrgnt/logger v0.21.1 h1:UuCJ+WOURnpSN6ZMva1/gnosZXnTpzQPZfkdDnZftPs=
 github.com/omcrgnt/logger v0.21.1/go.mod h1:Q1Fy8AswdaQ3MOSpLD/HwlnY5Dmx78RFEM5rXbaFPM8=
 github.com/omcrgnt/obs v0.20.1 h1:Dg5v7M6WpajJP6aQ6rmig5y14mS8X66tAMil93G5OUk=
 github.com/omcrgnt/obs v0.20.1/go.mod h1:1jKdSL/KVhTP3oCp1gTMFhmWsfDX883pdLqHuOOXnf0=
-github.com/omcrgnt/ops v0.21.1 h1:I9TtK6PPSYMAw52ZWHe1ZMO475ydp+OtaOJqMQWPafc=
-github.com/omcrgnt/ops v0.21.1/go.mod h1:yTENDtvmExbw/9sN2F2epMNSlzpIfmmGxZwV5iKw9Fw=
+github.com/omcrgnt/ops v0.21.2 h1:F10+cK5JFPJmhIoGt/3aqDe5JI/W4kKbyGfbfHXExEI=
+github.com/omcrgnt/ops v0.21.2/go.mod h1:ww3VdVoOfCoYYDHixJOf+cwicpjvzUoa/o/eB+QtnbI=
 github.com/omcrgnt/proto/gen/go v0.3.0 h1:N9ouU9osJ4stmED6LnY2cCUJe21XBommhel5tSlZfjo=
 github.com/omcrgnt/proto/gen/go v0.3.0/go.mod h1:XylKqMXLSRptwAPtnGx/s+tEVZoEvvkGJov6BgtYdz4=
 github.com/omcrgnt/res v0.22.0 h1:OCtaKOvcZq2johftmw6ZcfY9k5rmyfVOyHFeRTv0kOU=
@@ -59,8 +57,8 @@ github.com/omcrgnt/runner v0.21.0 h1:2pjkrUVxsSKRs/G2TEa0cX0wE6LHt8PzjyQ22xseKac
 github.com/omcrgnt/runner v0.21.0/go.mod h1:X18rRVW3V/dIEU7wrpsEveCp1RkyeDNvMsYdus/1uCA=
 github.com/omcrgnt/sdi v0.21.0 h1:Gp0DWb+X9A/uHDf0PieHAyKEvgdIoDTgc/KotdHvyhs=
 github.com/omcrgnt/sdi v0.21.0/go.mod h1:adV8pjy+VADDebhyE5Y01dt+NZf4xPoBPqNvPqPQBn0=
-github.com/omcrgnt/srv-http v0.21.3 h1:mWjOeZQrSkOvJSWx1423Vap1WlIWg1ywK8FWqo23fQ4=
-github.com/omcrgnt/srv-http v0.21.3/go.mod h1:1QOGkn/vr1T4OXkWWbKxQZvUvdoaGkbMZqlx9NalwN4=
+github.com/omcrgnt/srv-http v0.22.0 h1:R11i4f4qJ8j1JrNCUGiXuKv+wm3QnasGIg2+iw6qVKg=
+github.com/omcrgnt/srv-http v0.22.0/go.mod h1:6uELL3vm1LvPsmzEqzpY0qT7XLrA1FJ1d8tQFo+4248=
 github.com/omcrgnt/telemetry v0.21.1 h1:er8cYuUMN9SFo8jw2j1zpEEdqcDacEfQirry+SnJxX0=
 github.com/omcrgnt/telemetry v0.21.1/go.mod h1:/Lt97A4Exw1/6tmK+6nlKdYU8rADeRsdqraTCk2M3UI=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=

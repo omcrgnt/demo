@@ -5,10 +5,10 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/omcrgnt/builder"
 	"github.com/omcrgnt/demo/internal/data/sync/item/memory"
 	"github.com/omcrgnt/demo/internal/domain"
 	"github.com/omcrgnt/demo/internal/domain/service/item"
-	"github.com/omcrgnt/builder"
 	"github.com/omcrgnt/res"
 	"github.com/omcrgnt/res/restest"
 	"github.com/omcrgnt/sdi"
@@ -20,7 +20,7 @@ func resolveService(t *testing.T, spec item.Spec) *item.Service {
 	t.Helper()
 
 	restest.ResetGlobal()
-	repo, err := memory.RepoRoot{}.NewResource()
+	repo, err := (&memory.Repo{}).NewResource()
 	if err != nil {
 		t.Fatal(err)
 	}
