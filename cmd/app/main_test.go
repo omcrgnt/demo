@@ -23,9 +23,6 @@ func TestAppResources_Bootstrap(t *testing.T) {
 	t.Setenv("DEMO_SERVER_HTTP_ORDER_LABEL", "orders")
 	t.Setenv("DEMO_SERVER_HTTP_ORDER_HOST", "127.0.0.1")
 	t.Setenv("DEMO_SERVER_HTTP_ORDER_PORT", "18081")
-	t.Setenv("DEMO_OPS_HTTP_LABEL", "ops")
-	t.Setenv("DEMO_OPS_HTTP_HOST", "127.0.0.1")
-	t.Setenv("DEMO_OPS_HTTP_PORT", "19090")
 
 	reg := testRegistry(t)
 	var ar _appResources

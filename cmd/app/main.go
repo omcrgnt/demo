@@ -1,4 +1,4 @@
-//go:generate go run github.com/omcrgnt/ecfg/cmd/ecfg-gen -type AppResources -pkg github.com/omcrgnt/demo/cmd/app -prefix DEMO -template ../../.env.template -md ../../env.md
+//go:generate go run github.com/omcrgnt/ecfg/cmd/ecfg-gen -type _appResources -pkg github.com/omcrgnt/demo/cmd/app -prefix DEMO -template ../../.env.template -md ../../env.md
 
 package main
 

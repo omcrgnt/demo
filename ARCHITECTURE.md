@@ -1,6 +1,6 @@
 # demo architecture
 
-Reference app on **app v0.21**: explicit `AppResources` catalog, `unique.Global()` registry, blank-import defaults.
+Reference app on **app v0.21**: `_appResources` catalog in `cmd/app`, `unique.Global()` registry, blank-import system defaults.
 
 ## Pipeline
 
@@ -9,24 +9,38 @@ app.Run(&appResources, Pipeline{Registry: unique.Global(), ...})
   fill → ecfg.LoadEnv → materialize → unique.Merge → Transform → sdi.Resolve → Serve
 ```
 
+## Catalog vs system modules
+
+| Layer | Where | Example |
+|-------|--------|---------|
+| **User catalog** | `cmd/app` `_appResources` | domain servers, handlers, services, repos |
+| **System** | `*/use` init on `unique.Global()` | ops probe/metrics HTTP, HTTPMetrics, default App |
+
+Ops HTTP is **not** in the user catalog: `ops/transport/http/use` registers `DefaultServer()` with org defaults (`0.0.0.0:8080`). Domain HTTP ports come from ecfg (`DEMO_SERVER_HTTP_*`).
+
 ## Metrics (v0.21)
 
 ```text
 srv-http/use     → HTTPMetrics (MetricsContributor + slok Recorder), TagFixed
 ops/metrics/use  → *prometheus.Registry + metrics.Actuator
-ops/transport/http/use → probe + ops Handler + DefaultServer
+ops/transport/http/use → probe + ops Handler + DefaultServer (:8080)
 
 Resolve:
   metrics.Actuator.Inject → RegisterMetrics(reg) on HTTPMetrics + domain contributors
   srv-http servers        → shared metrics.Recorder (HTTPMetrics)
-  ops Handler             → /livez /readyz /healthz /metrics on OPS_HTTP port
+  ops Handler             → /livez /readyz /healthz /metrics on :8080
 ```
 
-One registry, one slok recorder, N srv-http servers (distinct `Service` label).
+One registry, one slok recorder, N srv-http domain servers (distinct `Service` label).
 
-## HTTP catalog (srv-http v0.22+)
+## HTTP layout
 
-Domain HTTP slots use `srvhttp.Server[T]` on `AppResources` (`cmd/app`). Item service: `item.ServiceRoot`; ops HTTP: `ophttp.Config` — each implements `BuildConfig()` in its lib.
+```text
+internal/api/http/item/   package item — item REST API (chi)
+internal/api/http/order/  package order — order REST API
+```
+
+Catalog pairs: `srvhttp.Server[*handler.API]` + `*handler.API` per domain slice.
 
 ## Known gaps (local)
 
