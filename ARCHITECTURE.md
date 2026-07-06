@@ -14,24 +14,27 @@ app.Run(&appResources, Pipeline{Registry: unique.Global(), ...})
 | Layer | Where | Example |
 |-------|--------|---------|
 | **User catalog** | `cmd/app` `_appResources` | domain servers, handlers, services, repos |
-| **System** | `*/use` init on `unique.Global()` | ops probe/metrics HTTP, HTTPMetrics, default App |
+| **System** | `meta/core/use` or `*/use` init; library `init` on `unique.Global()` | ops probe/metrics HTTP, HTTPMetrics, default App |
 
-Ops HTTP is **not** in the user catalog: `ops/transport/http/use` registers `DefaultServer()` with org defaults (`0.0.0.0:8080`). Domain HTTP ports come from ecfg (`DEMO_SERVER_HTTP_*`).
+Ops HTTP is **not** in the user catalog: `meta/core/use` pulls in `ops/transport/http/use` → `DefaultServer()` with org defaults (`0.0.0.0:8080`). Domain HTTP ports come from ecfg (`DEMO_SERVER_HTTP_*`).
 
 ## Metrics (v0.21)
 
 ```text
-srv-http/use     → HTTPMetrics (MetricsContributor + slok Recorder), TagFixed
-ops/metrics/use  → *prometheus.Registry + metrics.Actuator
-ops/transport/http/use → probe + ops Handler + DefaultServer (:8080)
+srv-http (init)  → HTTPMetrics (MetricsContributor + slok Recorder), TagFixed
+meta/core/use      → app, logger, telemetry, ops/transport/http/use (probe + metrics + ops HTTP)
 
 Resolve:
   metrics.Actuator.Inject → RegisterMetrics(reg) on HTTPMetrics + domain contributors
   srv-http servers        → shared metrics.Recorder (HTTPMetrics)
-  ops Handler             → /livez /readyz /healthz /metrics on :8080
+  ops Handler             → /livez /readyz /metrics on :8080
 ```
 
 One registry, one slok recorder, N srv-http domain servers (distinct `Service` label).
+
+## Probes (ops v0.25)
+
+`/readyz` on `:8080` — `probe.Actuator` aggregates `ProbeReadiness` from domain `srv-http.Server[T]` (catalog) and ops `transport/http.Server` (system). `/livez` — liveness only.
 
 ## HTTP layout
 
@@ -55,7 +58,7 @@ Cross-repo themes live in [github.com/omcrgnt/backlog](https://github.com/omcrgn
 | Drop `builder`, srv-http v0.21 publish | [drop-builder-app-v21](https://github.com/omcrgnt/backlog/blob/main/items/drop-builder-app-v21.md) |
 | Configurable / Blueprint naming | [app-catalog-naming](https://github.com/omcrgnt/backlog/blob/main/items/app-catalog-naming.md) |
 | ecfg-gen typing, CustomTag | [ecfg-res-custom-tags](https://github.com/omcrgnt/backlog/blob/main/items/ecfg-res-custom-tags.md) |
-| sdi DependencyOrder, Many warn | [sdi-v21-followups](https://github.com/omcrgnt/backlog/blob/main/items/sdi-v21-followups.md) |
+| sdi CheckCycles opt-in, Many warn | [sdi-v21-followups](https://github.com/omcrgnt/backlog/blob/main/items/sdi-v21-followups.md) |
 | ops probe + metrics | [ops-probe-v1-followups](https://github.com/omcrgnt/backlog/blob/main/items/ops-probe-v1-followups.md) |
 | srv-http defer listen | [srv-http-defer-listen](https://github.com/omcrgnt/backlog/blob/main/items/srv-http-defer-listen.md) |
 | shared Taskfiles | [org-devtools-taskfiles](https://github.com/omcrgnt/backlog/blob/main/items/org-devtools-taskfiles.md) |

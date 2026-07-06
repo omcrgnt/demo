@@ -5,12 +5,7 @@ package main
 import (
 	"log"
 
-	_ "github.com/omcrgnt/app/use"
-	_ "github.com/omcrgnt/logger/use"
-	_ "github.com/omcrgnt/ops/metrics/use"
-	_ "github.com/omcrgnt/ops/transport/http/use"
-	_ "github.com/omcrgnt/srv-http/use"
-	_ "github.com/omcrgnt/telemetry/use"
+	_ "github.com/omcrgnt/meta/core/use"
 
 	"github.com/omcrgnt/app"
 	handleritem "github.com/omcrgnt/demo/internal/api/http/item"
@@ -28,12 +23,12 @@ import (
 const envPrefix = "DEMO"
 
 type _appResources struct {
-	ServerHTTPItem srvhttp.Server[*handleritem.API] `ecfg:"SERVER_HTTP_ITEM"`
+	ServerHTTPItem *srvhttp.Server[*handleritem.API] `ecfg:"SERVER_HTTP_ITEM"`
 	APIItem        *handleritem.API
 	ServiceItem    *serviceitem.Service `ecfg:"SERVICE_ITEM"`
 	RepoItem       *repoitem.Repo
 
-	ServerHTTPOrder srvhttp.Server[*handlerorder.API] `ecfg:"SERVER_HTTP_ORDER"`
+	ServerHTTPOrder *srvhttp.Server[*handlerorder.API] `ecfg:"SERVER_HTTP_ORDER"`
 	APIOrder        *handlerorder.API
 	ServiceOrder    *serviceorder.Service
 	RepoOrder       *repoorder.Repo

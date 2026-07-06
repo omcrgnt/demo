@@ -26,9 +26,9 @@ app.Run(&appResources, pipeline)
 
 Catalog fields are [ResourceFactory] or [Configurable]. Configurable types expose `BuildConfig() → spec` with `Build() → resource`. ecfg walks specs for fields tagged `ecfg:"…"`.
 
-Blank-import [`github.com/omcrgnt/app/use`](https://github.com/omcrgnt/app) for default `*app.App` and `*runner.Runner`.
+Blank-import [`github.com/omcrgnt/meta/core/use`](https://github.com/omcrgnt/meta) for platform defaults (`*app.App`, `*runner.Runner`, logger, telemetry, ops HTTP/probe/metrics).
 
-**Ops** (probe, metrics scrape, ops HTTP) is **not** in the user catalog — registered by `ops/*/use` on `unique.Global()` with library defaults (`:8080`).
+**Ops** (probe, metrics scrape, ops HTTP) is **not** in the user catalog — registered by `meta/core/use` on `unique.Global()` with library defaults (`:8080`).
 
 ## AppResources (`cmd/app/main.go`)
 
@@ -36,16 +36,16 @@ Grouped by domain slice (server → handler → service → repo):
 
 | Field | Mechanism |
 |-------|-----------|
-| `ServerHTTPItem` | `srvhttp.Server[*handleritem.API]` [Configurable] → `srvhttp.Config` |
+| `ServerHTTPItem` | `*srvhttp.Server[*handleritem.API]` [Configurable] → `srvhttp.Config` |
 | `APIItem` | `*handleritem.API` [ResourceFactory] |
 | `ServiceItem` | `*serviceitem.Service` [Configurable] → `item.Spec` |
 | `RepoItem` | `*repoitem.Repo` [ResourceFactory] |
-| `ServerHTTPOrder` | `srvhttp.Server[*handlerorder.API]` [Configurable] |
+| `ServerHTTPOrder` | `*srvhttp.Server[*handlerorder.API]` [Configurable] |
 | `APIOrder` | `*handlerorder.API` [ResourceFactory] |
 | `ServiceOrder` | `*serviceorder.Service` [ResourceFactory] |
 | `RepoOrder` | `*repoorder.Repo` [ResourceFactory] |
 
-Domain HTTP ports: configure via `DEMO_SERVER_HTTP_ITEM_*` / `DEMO_SERVER_HTTP_ORDER_*`. HTTP request metrics: shared slok recorder via `srv-http/use`; scrape via ops (below).
+Domain HTTP ports: configure via `DEMO_SERVER_HTTP_ITEM_*` / `DEMO_SERVER_HTTP_ORDER_*`. HTTP request metrics: `srv-http` import registers `HTTPMetrics`; scrape via `ops/transport/http/use` (below).
 
 ### app.Pipeline (set in main)
 
@@ -56,12 +56,8 @@ Domain HTTP ports: configure via `DEMO_SERVER_HTTP_ITEM_*` / `DEMO_SERVER_HTTP_O
 ### Blank imports (main)
 
 ```go
-_ "github.com/omcrgnt/app/use"
-_ "github.com/omcrgnt/logger/use"
-_ "github.com/omcrgnt/telemetry/use"
-_ "github.com/omcrgnt/srv-http/use"           // HTTPMetrics singleton
-_ "github.com/omcrgnt/ops/metrics/use"       // registry + metrics actuator
-_ "github.com/omcrgnt/ops/transport/http/use" // probe + ops HTTP (:8080 default)
+_ "github.com/omcrgnt/meta/core/use" // app, logger, telemetry, ops HTTP/probe/metrics
+// srv-http imported for Server types — HTTPMetrics registers via package init
 ```
 
 ## Commands
@@ -81,7 +77,7 @@ task gen        # go generate (obsgen, ecfg-gen → .env.template + env.md)
 
 System defaults (ops `:8080`, blank-import `use` modules) are **not** in the template — they live in org libs, not the user catalog.
 
-Ops probes (app running; ops default listen):
+Ops probes (app running; ops default listen). `/readyz` aggregates domain `srv-http` servers and ops HTTP via `probe.Actuator` (`ProbeReadiness` many):
 
 ```bash
 curl -s :8080/livez
@@ -98,6 +94,6 @@ curl -s :8082/orders
 
 ## Notes
 
-- Stack: `app`, `ecfg`, `res`, `sdi`, `runner`, `obs`, `srv-http`, `ops`, `logger`, `telemetry` at org v0.21 / v0.22.
-- Temporary `replace` for local dev: `builder`, `ecfg` — see org [backlog](https://github.com/omcrgnt/backlog).
+- Stack: `app`, `ecfg`, `res`, `sdi` v0.22, `runner`, `obs`, `srv-http` v0.24, `ops` v0.25, `logger`, `telemetry`.
+- Temporary `replace` for local dev: `builder`, `ecfg`, `ops`, `sdi`, `srv-http` — see org [backlog](https://github.com/omcrgnt/backlog).
 - External require: `github.com/omcrgnt/proto/gen/go` (srv-http Label/Host/Port).
