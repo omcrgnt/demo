@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/omcrgnt/builder"
 	"github.com/omcrgnt/demo/internal/data/sync/item/memory"
 	"github.com/omcrgnt/demo/internal/domain"
 	"github.com/omcrgnt/demo/internal/domain/service/item"
@@ -27,7 +26,14 @@ func resolveService(t *testing.T, spec item.Spec) *item.Service {
 	_ = res.Global().Add(repo)
 	_ = res.Global().Add(spec)
 
-	if err := builder.Build(res.Global()); err != nil {
+	built, err := spec.Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := res.Global().Add(built); err != nil {
+		t.Fatal(err)
+	}
+	if err := res.Global().Remove(spec); err != nil {
 		t.Fatal(err)
 	}
 	if err := sdi.Resolve(res.Global()); err != nil {

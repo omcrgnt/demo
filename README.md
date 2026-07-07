@@ -111,6 +111,5 @@ grpcurl -plaintext localhost:9080 demo.v1.ProductService/ListProducts
 
 ## Notes
 
-- Stack: `app`, `ecfg`, `res`, `sdi` v0.22, `runner`, `obs`, `srv-http` v0.24, `srv-grpc` v0.24, `ops` v0.24, `logger`, `telemetry`.
-- Temporary `replace` for local dev: `builder` — see org [backlog](https://github.com/omcrgnt/backlog).
+- Stack: `app` v0.21, `ecfg`, `res`, `sdi` v0.22, `runner`, `obs`, `srv-http` v0.24, `srv-grpc` v0.24, `ops` v0.24, `logger`, `telemetry`.
 - External require: `github.com/omcrgnt/proto/gen/go` (srv-http/srv-grpc Label/Host/Port); demo API protos are local under `proto/demo/v1/`.

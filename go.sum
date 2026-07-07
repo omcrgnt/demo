@@ -47,8 +47,8 @@ github.com/kylelemons/godebug v1.1.0 h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0
 github.com/kylelemons/godebug v1.1.0/go.mod h1:9/0rRGxNHcop5bhtWyNeEfOS8JIWk580+fNqagV/RAw=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
-github.com/omcrgnt/app v0.21.1 h1:en7tgUi+PqBvX5pnHq+ubK4RHm10PoyG7oul43UPBMY=
-github.com/omcrgnt/app v0.21.1/go.mod h1:tddwLAPOr+HYKQAvkVIRY94Xwi/y5jHy+QxJuzdr2ZA=
+github.com/omcrgnt/app v0.21.2 h1:gBu855bNsNX6qQxHufNY/2ayfsg8J3FCYW9WjYxo+xk=
+github.com/omcrgnt/app v0.21.2/go.mod h1:tddwLAPOr+HYKQAvkVIRY94Xwi/y5jHy+QxJuzdr2ZA=
 github.com/omcrgnt/ecfg v0.21.3 h1:z/Pa0q87jmeGj6noG1nk8FNjSV0jVJYUdLJnLS1+q0c=
 github.com/omcrgnt/ecfg v0.21.3/go.mod h1:G3MgyTnJ7ufQFQDgjFquloGOntcNdgx9Zbkmr9RQ+hI=
 github.com/omcrgnt/logger v0.21.1 h1:UuCJ+WOURnpSN6ZMva1/gnosZXnTpzQPZfkdDnZftPs=

@@ -5,8 +5,7 @@ go 1.26.2
 require (
 	github.com/go-chi/chi/v5 v5.3.0
 	github.com/google/uuid v1.6.0
-	github.com/omcrgnt/app v0.21.1
-	github.com/omcrgnt/builder v0.20.2
+	github.com/omcrgnt/app v0.21.2
 	github.com/omcrgnt/logger v0.21.1
 	github.com/omcrgnt/meta v0.21.0
 	github.com/omcrgnt/obs v0.20.1
@@ -66,5 +65,3 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20260622175928-b703f567277d // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260622175928-b703f567277d // indirect
 )
-
-replace github.com/omcrgnt/builder => ../builder
