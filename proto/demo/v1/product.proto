@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package demo.v1;
+
+option go_package = "github.com/omcrgnt/demo/internal/api/grpc/gen/demo/v1;demov1";
+
+message Product {
+  string id = 1;
+  string title = 2;
+}
+
+message ListProductsRequest {}
+
+message ListProductsResponse {
+  repeated Product products = 1;
+}
+
+message GetProductRequest {
+  string id = 1;
+}
+
+message CreateProductRequest {
+  string title = 1;
+}
+
+message UpdateProductRequest {
+  string id = 1;
+  string title = 2;
+}
+
+message DeleteProductRequest {
+  string id = 1;
+}
+
+message DeleteProductResponse {}
+
+service ProductService {
+  rpc ListProducts(ListProductsRequest) returns (ListProductsResponse);
+  rpc GetProduct(GetProductRequest) returns (Product);
+  rpc CreateProduct(CreateProductRequest) returns (Product);
+  rpc UpdateProduct(UpdateProductRequest) returns (Product);
+  rpc DeleteProduct(DeleteProductRequest) returns (DeleteProductResponse);
+}

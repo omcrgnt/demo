@@ -30,11 +30,11 @@ Resolve:
   ops Handler             → /livez /readyz /metrics on :8080
 ```
 
-One registry, one slok recorder, N srv-http domain servers (distinct `Service` label).
+One registry, one slok recorder, N srv-http domain servers (distinct `Service` label). `srv-grpc` mirrors this with `GRPCMetrics` and grpc-prometheus interceptors.
 
 ## Probes (ops v0.25)
 
-`/readyz` on `:8080` — `probe.Actuator` aggregates `ProbeReadiness` from domain `srv-http.Server[T]` (catalog) and ops `transport/http.Server` (system). `/livez` — liveness only.
+`/readyz` on `:8080` — `probe.Actuator` aggregates `ProbeReadiness` from domain `srv-http.Server[T]`, `srv-grpc.Server[T]` (catalog), and ops `transport/http.Server` (system). `/livez` — liveness only.
 
 ## HTTP layout
 
@@ -44,6 +44,18 @@ internal/api/http/order/  package order — order REST API
 ```
 
 Catalog pairs: `srvhttp.Server[*handler.API]` + `*handler.API` per domain slice.
+
+## gRPC layout
+
+```text
+proto/demo/v1/              local OrderService + ProductService protos
+internal/api/grpc/gen/demo/v1/  generated stubs (buf)
+internal/api/grpc/order/        order gRPC handler
+internal/api/grpc/product/      product gRPC handler
+internal/api/grpc/bundle/       composite RegisterGRPC (one port, two services)
+```
+
+Catalog: `srvgrpc.Server[*bundle.Bundle]` + `Bundle` + `GRPCAPIOrder` + `GRPCAPIProduct` + `ServiceProduct` + `RepoProduct`. Order reuses `ServiceOrder` / `RepoOrder` (HTTP + gRPC share domain layer). Item remains HTTP-only.
 
 ## Known gaps (local)
 

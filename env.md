@@ -4,6 +4,14 @@ Copy `.env.template` to `.env` and set values. See `.env.example` for local defa
 
 **Prefix:** `DEMO`
 
+## SERVER_GRPC
+
+| Variable | Description |
+|----------|-------------|
+| `DEMO_SERVER_GRPC_HOST` | URL или IP |
+| `DEMO_SERVER_GRPC_LABEL` | Метка сущности: по шаблону ^[a-z][a-z0-9_]{1,31}$ |
+| `DEMO_SERVER_GRPC_PORT` | Порт сервера: 1-65535 |
+
 ## SERVER_HTTP_ITEM
 
 | Variable | Description |
