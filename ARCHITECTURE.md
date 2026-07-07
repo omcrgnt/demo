@@ -1,85 +1,77 @@
-# Architecture
+# demo architecture
 
-Reference app assembly: one `go.mod`, org libs from `github.com/omcrgnt/*`, explicit pipeline (no legacy `Resourcer`).
+Reference app on **app v0.21**: `_appResources` catalog in `cmd/app`, `unique.Global()` registry, blank-import system defaults.
 
 ## Pipeline
 
 ```text
-app.Run(&appResources, pipeline)
-  → Seed → Apply → Build → Transform → Resolve → App.Serve
+app.Run(&appResources, Pipeline{Registry: unique.Global(), ...})
+  fill → ecfg.LoadEnv → materialize → unique.Merge → Transform → sdi.Resolve → Serve
 ```
 
-| Step | Package | Role |
-|------|---------|------|
-| Seed | `builder` | Walk `AppResources`; register specs (`BuildConfig`) or deferred `NewResource` |
-| Apply | `ecfg` | Load env into specs from seed map |
-| Build | `builder` | `Spec.Build()` / `NewResource()` → resources in registry |
-| Transform | `res` + `obs` | Optional wrappers (metrics, tracing) |
-| Resolve | `sdi` | Inject deps from `Deps()` / `Inject()` |
-| Serve | `app` + `runner` | Signal → run pool → graceful stop |
+## Catalog vs system modules
 
-## AppResources
+| Layer | Where | Example |
+|-------|--------|---------|
+| **User catalog** | `cmd/app` `_appResources` | domain servers, handlers, services, repos |
+| **System** | `meta/core/use` or `*/use` init; library `init` on `unique.Global()` | ops probe/metrics HTTP, HTTPMetrics, default App |
 
-Single struct in `main` — catalog of everything in the process.
+Ops HTTP is **not** in the user catalog: `meta/core/use` pulls in `ops/transport/http/use` → `DefaultServer()` with org defaults (`0.0.0.0:8080`). Domain HTTP ports come from ecfg (`DEMO_SERVER_HTTP_*`).
 
-### Field naming
-
-`{type}{subject}` — e.g. `RepoOrder`, `ServiceItem`, `ServerHTTPItem`.
-
-### Field kinds
-
-Each field is **one resource slot** — either:
-
-- **NewResourceer** — `NewResource()` at Build (no env block)
-- **BuildConfiger** — `BuildConfig()` → Spec/Config; env applies to spec; `Build()` → resource
-
-No third type. No duplicate config fields on the resource for ecfg.
+## Metrics (v0.21)
 
 ```text
-AppResources field = resource (*item.Service, *app.App, …)
-  BuildConfiger:  resource.BuildConfig() → Spec/Config  →  Spec.Build() → resource
-  NewResourceer:  NewResource() → resource
+srv-http (init)  → HTTPMetrics (MetricsContributor + slok Recorder), TagFixed
+meta/core/use      → app, logger, telemetry, ops/transport/http/use (probe + metrics + ops HTTP)
+
+Resolve:
+  metrics.Actuator.Inject → RegisterMetrics(reg) on HTTPMetrics + domain contributors
+  srv-http servers        → shared metrics.Recorder (HTTPMetrics)
+  ops Handler             → /livez /readyz /metrics on :8080
 ```
 
-### ecfg
+One registry, one slok recorder, N srv-http domain servers (distinct `Service` label). `srv-grpc` mirrors this with `GRPCMetrics` and grpc-prometheus interceptors.
 
-- Tagged fields: `ecfg:"BLOCK_NAME"` on the **resource** slot (for block prefix only).
-- Env shape comes from **Spec/Config** returned by `BuildConfig()`, not from resource fields.
-- Codegen (`ecfg-gen`) resolves spec type via `BuildConfig()` AST; runtime Apply writes into spec in seed map.
+## Probes (ops v0.25)
 
-Domain suffix in env blocks where relevant: `SERVICE_ITEM`, `SERVER_HTTP_ITEM`, `SERVER_HTTP_ORDER`.
+`/readyz` on `:8080` — `probe.Actuator` aggregates `ProbeReadiness` from domain `srv-http.Server[T]`, `srv-grpc.Server[T]` (catalog), and ops `transport/http.Server` (system). `/livez` — liveness only.
 
-## Domain layout
+## HTTP layout
 
 ```text
-internal/
-  domain/          models, ports, services
-  data/sync/       repos (NewResourceer)
-  api/http/        HTTP adapters (NewResourceer), thin over domain ports
-cmd/demo/          AppResources + main
+internal/api/http/item/   package item — item REST API (chi)
+internal/api/http/order/  package order — order REST API
 ```
 
-Org stack: `app`, `builder`, `res`, `sdi`, `ecfg`, `runner`, `obs`, `srv-http`, `logger`, `telemetry` — versioned `github.com/omcrgnt/*` modules.
+Catalog pairs: `srvhttp.Server[*handler.API]` + `*handler.API` per domain slice.
 
-Codegen on services: `sdigen` (Deps/Inject), `obsgen` (Observe).
+## gRPC layout
 
-## Roles (examples)
+```text
+proto/demo/v1/              local OrderService + ProductService protos
+internal/api/grpc/gen/demo/v1/  generated stubs (buf)
+internal/api/grpc/order/        order gRPC handler
+internal/api/grpc/product/      product gRPC handler
+internal/api/grpc/bundle/       composite RegisterGRPC (one port, two services)
+```
 
-| Concern | Owner |
-|---------|--------|
-| Shutdown grace period | `app.Spec` → built `*app.App` |
-| Run/stop pool | stateless `runner.Runner` |
-| List max length | `item.Spec` → `*item.Service` |
-| HTTP listen addr | `srvhttp.Config` via `BuildConfig` on `*http.Server` or `*Config` |
+Catalog: `srvgrpc.Server[*bundle.Bundle]` + `Bundle` + `GRPCAPIOrder` + `GRPCAPIProduct` + `ServiceProduct` + `RepoProduct`. Order reuses `ServiceOrder` / `RepoOrder` (HTTP + gRPC share domain layer). Item remains HTTP-only.
 
-## Known gaps (backlog)
+## Known gaps (local)
 
-- [ ] **sdi dedup** — pool-wide Replaceable dedup, not only types from `Deps()` stubs
-- [ ] **BuildConfig typing** — spec type inferred by AST; fragile for non-literal returns
-- [ ] **Symmetry** — order service has no Spec yet; HTTP item uses `http.Server` alias, order uses `srvhttp.Config` directly
-- [ ] **Full stack in demo** — logger/telemetry registered via `use` imports; not yet configurable through AppResources
+Demo-only gaps: [backlog/items/demo-reference-gaps.md](https://github.com/omcrgnt/backlog/blob/main/items/demo-reference-gaps.md).
 
-## References
+## Org backlog
 
-- [README.md](README.md) — commands, AppResources table
-- [env.md](env.md) — generated env docs
+Cross-repo themes live in [github.com/omcrgnt/backlog](https://github.com/omcrgnt/backlog):
+
+| Theme | Item |
+|-------|------|
+| Drop `builder`, srv-http v0.21 publish | [drop-builder-app-v21](https://github.com/omcrgnt/backlog/blob/main/items/drop-builder-app-v21.md) |
+| Configurable / Blueprint naming | [app-catalog-naming](https://github.com/omcrgnt/backlog/blob/main/items/app-catalog-naming.md) |
+| ecfg-gen typing, CustomTag | [ecfg-res-custom-tags](https://github.com/omcrgnt/backlog/blob/main/items/ecfg-res-custom-tags.md) |
+| sdi CheckCycles opt-in, Many warn | [sdi-v21-followups](https://github.com/omcrgnt/backlog/blob/main/items/sdi-v21-followups.md) |
+| ops probe + metrics | [ops-probe-v1-followups](https://github.com/omcrgnt/backlog/blob/main/items/ops-probe-v1-followups.md) |
+| srv-http defer listen | [srv-http-defer-listen](https://github.com/omcrgnt/backlog/blob/main/items/srv-http-defer-listen.md) |
+| shared Taskfiles | [org-devtools-taskfiles](https://github.com/omcrgnt/backlog/blob/main/items/org-devtools-taskfiles.md) |
+| local dev composer | [decompose-local-dev](https://github.com/omcrgnt/backlog/blob/main/items/decompose-local-dev.md) |

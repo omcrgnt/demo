@@ -1,43 +1,72 @@
 # demo — AppResources reference app
 
-Reference application for the target architecture: single `go.mod`, org libs from `github.com/omcrgnt/*`, pipeline without legacy `Resourcer`.
+Reference application for the target architecture: single `go.mod`, org libs from `github.com/omcrgnt/*`, explicit pipeline (no legacy `Resourcer`).
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for contracts, roles, and backlog.
 
-## Pipeline
-
-Handled by [`github.com/omcrgnt/app`](https://github.com/omcrgnt/app):
+## Layout
 
 ```text
-app.Run(&appResources, pipeline)  // pipeline configured explicitly in main
-  → Seed → Apply → Build → Transform → Resolve → runner
+cmd/app/              main, _appResources catalog
+proto/demo/v1/        local demo API protos
+internal/api/http/    item/, order/ — domain HTTP handlers
+internal/api/grpc/    gen/, order/, product/, bundle/
+internal/domain/      services (item, order, product)
+internal/data/        repos
+.env.template         ecfg-gen output — copy blocks; details in env.md
+env.md                ecfg variable docs (generated)
 ```
 
-`AppResources` holds **resources** only: each field is [NewResourceer] or [BuildConfiger]. Configurable resources use two types — resource + Spec/Config (`BuildConfig()` → spec, `Build()` → resource). ecfg walks the spec, not wire fields.
+## Pipeline
 
-## AppResources
+Handled by [`github.com/omcrgnt/app`](https://github.com/omcrgnt/app) v0.21:
 
-Fields follow `{type}{subject}` (e.g. `RepoOrder`, `ServiceItem`). Each field is [NewResourceer] or [BuildConfiger].
+```text
+app.Run(&appResources, pipeline)
+  → fill → LoadEnv → materialize → merge → Transform → Resolve → Serve
+```
+
+Catalog fields are [ResourceFactory] or [Configurable]. Configurable types expose `BuildConfig() → spec` with `Build() → resource`. ecfg walks specs for fields tagged `ecfg:"…"`.
+
+Blank-import [`github.com/omcrgnt/meta/core/use`](https://github.com/omcrgnt/meta) for platform defaults (`*app.App`, `*runner.Runner`, logger, telemetry, ops HTTP/probe/metrics).
+
+**Ops** (probe, metrics scrape, ops HTTP) is **not** in the user catalog — registered by `meta/core/use` on `unique.Global()` with library defaults (`:8080`).
+
+## AppResources (`cmd/app/main.go`)
+
+Grouped by domain slice (server → handler → service → repo):
 
 | Field | Mechanism |
 |-------|-----------|
-| `App` | `*app.App` [BuildConfiger] → `app.Spec` |
-| `Runner` | [NewResourceer] → `*runner.Runner` |
-| `RepoItem` | [NewResourceer] → `*memory.Repo` |
-| `ServiceItem` | `*item.Service` [BuildConfiger] → `item.Spec` |
-| `RepoOrder` | [NewResourceer] → `*ordermemory.Repo` |
-| `ServiceOrder` | [NewResourceer] → `*order.Service` |
-| `Metrics` | [NewResourceer] |
-| `ServerHTTPItem` | `*http.Server` [BuildConfiger] → `srvhttp.Config[*http.API]` |
-| `APIItem` | [NewResourceer] |
-| `ServerHTTPOrder` | `*srvhttp.Config[...]` [BuildConfiger] → same config type |
-| `APIOrder` | [NewResourceer] |
+| `ServerHTTPItem` | `*srvhttp.Server[*handleritem.API]` [Configurable] → `srvhttp.Config` |
+| `APIItem` | `*handleritem.API` [ResourceFactory] |
+| `ServiceItem` | `*serviceitem.Service` [Configurable] → `item.Spec` |
+| `RepoItem` | `*repoitem.Repo` [ResourceFactory] |
+| `ServerHTTPOrder` | `*srvhttp.Server[*handlerorder.API]` [Configurable] |
+| `APIOrder` | `*handlerorder.API` [ResourceFactory] |
+| `ServiceOrder` | `*serviceorder.Service` [ResourceFactory] |
+| `RepoOrder` | `*repoorder.Repo` [ResourceFactory] |
+| `ServerGRPC` | `*srvgrpc.Server[*bundle.Bundle]` [Configurable] → `srvgrpc.Config` |
+| `Bundle` | `*bundle.Bundle` [ResourceFactory] — registers order + product gRPC |
+| `GRPCAPIOrder` | `*ordergrpc.API` [ResourceFactory] |
+| `GRPCAPIProduct` | `*productgrpc.API` [ResourceFactory] |
+| `ServiceProduct` | `*serviceproduct.Service` [ResourceFactory] |
+| `RepoProduct` | `*repoproduct.Repo` [ResourceFactory] |
+
+Domain HTTP ports: `DEMO_SERVER_HTTP_ITEM_*` / `DEMO_SERVER_HTTP_ORDER_*`. gRPC (order + product): `DEMO_SERVER_GRPC_*` on one port via `bundle.Bundle`. HTTP metrics: `srv-http` → `HTTPMetrics`; gRPC metrics: `srv-grpc` → `GRPCMetrics`; scrape via ops on `:8080`.
 
 ### app.Pipeline (set in main)
 
-- `Registry` — e.g. `res.Global()` or `res.New()` in tests
-- `EnvPrefix` — ecfg prefix, e.g. `"DEMO"`
-- `Transforms` — e.g. `[]res.TransformFunc{obs.ApplyTransform}`; empty skips Transform
+- `Registry` — `unique.Global()` or `unique.New()` in tests
+- `EnvPrefix` — `"DEMO"`
+- `Transforms` — e.g. `[]res.TransformFunc{obs.ApplyTransform}`
+
+### Blank imports (main)
+
+```go
+_ "github.com/omcrgnt/meta/core/use" // app, logger, telemetry, ops HTTP/probe/metrics
+// srv-http / srv-grpc: Server types; HTTPMetrics / GRPCMetrics register via package init
+```
 
 ## Commands
 
@@ -45,17 +74,42 @@ From repo root:
 
 ```bash
 cp .env.example .env
+task deps        # grpcurl (optional; for gRPC smoke below)
 task r-app      # build + run with .env
 task test       # go test ./...
-task gen        # go generate (obsgen, ecfg-gen → .env.template + env.md)
+task gen        # buf generate + go generate (obsgen, ecfg-gen → .env.template + env.md)
 ```
 
-- `.env.template` — generated keys only (`KEY=`)
-- `env.md` — generated usage docs (tables by ecfg block)
-- `.env.example` — sample values for local run (`cp .env.example .env`)
+- **`.env.template`** — generated by `ecfg-gen` only (`KEY=` blocks). Copy a block or the whole file when adding env keys; do not edit by hand except via catalog + `task gen`. Variable descriptions: **`env.md`**.
+- **`.env.example`** — optional sample values for local run (`cp .env.example .env`).
+- **`.env`** — local, gitignored.
+
+System defaults (ops `:8080`, blank-import `use` modules) are **not** in the template — they live in org libs, not the user catalog.
+
+Ops probes (app running; ops default listen). `/readyz` aggregates domain `srv-http` / `srv-grpc` servers and ops HTTP via `probe.Actuator` (`ProbeReadiness` many):
+
+```bash
+curl -s :8080/livez
+curl -s :8080/readyz
+curl -s :8080/metrics | head
+```
+
+Domain HTTP APIs (see `.env.example`):
+
+```bash
+curl -s :8081/items
+curl -s :8082/orders
+```
+
+Domain gRPC (`:9080`, order + product on one server):
+
+```bash
+grpcurl -plaintext localhost:9080 list
+grpcurl -plaintext localhost:9080 demo.v1.OrderService/ListOrders
+grpcurl -plaintext localhost:9080 demo.v1.ProductService/ListProducts
+```
 
 ## Notes
 
-- Stack deps are published modules (`app`, `builder`, `ecfg`, `res`, `sdi`, …) at `v0.20.x`.
-- `logger/use` and `telemetry/use` are blank-imported in `main` so `res.Global()` registers defaults.
-- External require: `github.com/omcrgnt/proto/gen/go` (srv-http Label/Host/Port).
+- Stack: `app` v0.21, `ecfg`, `res`, `sdi` v0.22, `runner`, `obs`, `srv-http` v0.24, `srv-grpc` v0.24, `ops` v0.24, `logger`, `telemetry`.
+- External require: `github.com/omcrgnt/proto/gen/go` (srv-http/srv-grpc Label/Host/Port); demo API protos are local under `proto/demo/v1/`.

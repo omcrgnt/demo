@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package demo.v1;
+
+option go_package = "github.com/omcrgnt/demo/internal/api/grpc/gen/demo/v1;demov1";
+
+message Order {
+  string id = 1;
+  string title = 2;
+}
+
+message ListOrdersRequest {}
+
+message ListOrdersResponse {
+  repeated Order orders = 1;
+}
+
+message GetOrderRequest {
+  string id = 1;
+}
+
+message CreateOrderRequest {
+  string title = 1;
+}
+
+message UpdateOrderRequest {
+  string id = 1;
+  string title = 2;
+}
+
+message DeleteOrderRequest {
+  string id = 1;
+}
+
+message DeleteOrderResponse {}
+
+service OrderService {
+  rpc ListOrders(ListOrdersRequest) returns (ListOrdersResponse);
+  rpc GetOrder(GetOrderRequest) returns (Order);
+  rpc CreateOrder(CreateOrderRequest) returns (Order);
+  rpc UpdateOrder(UpdateOrderRequest) returns (Order);
+  rpc DeleteOrder(DeleteOrderRequest) returns (DeleteOrderResponse);
+}

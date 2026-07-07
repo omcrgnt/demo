@@ -8,13 +8,6 @@ import (
 	"github.com/omcrgnt/demo/internal/domain/model"
 )
 
-// RepoRoot is the AppResources wire type for the item repository.
-type RepoRoot struct{}
-
-func (RepoRoot) NewResource() (any, error) {
-	return NewRepo(), nil
-}
-
 type Repo struct {
 	mu    sync.RWMutex
 	items map[string]model.Item
@@ -24,6 +17,10 @@ func NewRepo() *Repo {
 	return &Repo{
 		items: make(map[string]model.Item),
 	}
+}
+
+func (*Repo) NewResource() (any, error) {
+	return NewRepo(), nil
 }
 
 func (r *Repo) AllItems() ([]model.Item, error) {

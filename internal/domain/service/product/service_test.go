@@ -1,13 +1,13 @@
-package order_test
+package product_test
 
 import (
 	"context"
 	"reflect"
 	"testing"
 
-	"github.com/omcrgnt/demo/internal/data/sync/order/memory"
+	"github.com/omcrgnt/demo/internal/data/sync/product/memory"
 	"github.com/omcrgnt/demo/internal/domain"
-	"github.com/omcrgnt/demo/internal/domain/service/order"
+	"github.com/omcrgnt/demo/internal/domain/service/product"
 	"github.com/omcrgnt/res"
 	"github.com/omcrgnt/res/restest"
 	"github.com/omcrgnt/sdi"
@@ -15,7 +15,7 @@ import (
 
 var testCtx = context.Background()
 
-func resolveService(t *testing.T) *order.Service {
+func resolveService(t *testing.T) *product.Service {
 	t.Helper()
 
 	restest.ResetGlobal()
@@ -23,7 +23,7 @@ func resolveService(t *testing.T) *order.Service {
 	if err != nil {
 		t.Fatal(err)
 	}
-	svc, err := (&order.Service{}).NewResource()
+	svc, err := (&product.Service{}).NewResource()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -34,11 +34,11 @@ func resolveService(t *testing.T) *order.Service {
 		t.Fatal(err)
 	}
 
-	svcAny, err := res.Global().GetOneByType(reflect.TypeOf((*order.Service)(nil)))
+	svcAny, err := res.Global().GetOneByType(reflect.TypeOf((*product.Service)(nil)))
 	if err != nil {
 		t.Fatal(err)
 	}
-	return svcAny.(*order.Service)
+	return svcAny.(*product.Service)
 }
 
 func TestService_CRUD(t *testing.T) {

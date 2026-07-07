@@ -1,0 +1,28 @@
+---
+description: Never push to git remote unless the user explicitly asks
+alwaysApply: true
+---
+
+# Git — no push without explicit request
+
+Applies to all `github.com/omcrgnt/*` work.
+
+## Rule
+
+**Do not run `git push`, `git push --tags`, or any command that publishes commits/tags to a remote** unless the user explicitly asks in the current message or in a user rule for that action.
+
+## Allowed without a push request
+
+- `git status`, `git diff`, `git log`, local branch operations
+- Local `git commit` when the user asked to commit (see commit user rule)
+- Local `git tag` when the user asked to tag
+- Prepare push commands for the user to run
+- `gh pr create` only after user asked to create a PR **and** push is required — still confirm push if not explicitly requested
+
+## When the user asks to push
+
+Push only what they asked for (branch, tags, `--force` only if explicitly requested; never force-push to main/master unless explicitly requested).
+
+## After local commits/tags
+
+Tell the user what is ready locally and offer the exact `git push` / `git push origin <tag>` commands — do not run them unless asked.

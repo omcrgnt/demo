@@ -1,4 +1,4 @@
-package http
+package item
 
 import "github.com/omcrgnt/demo/internal/domain/model"
 

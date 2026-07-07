@@ -3,22 +3,22 @@ package memory_test
 import (
 	"testing"
 
-	"github.com/omcrgnt/demo/internal/data/sync/order/memory"
+	"github.com/omcrgnt/demo/internal/data/sync/product/memory"
 	"github.com/omcrgnt/demo/internal/domain"
 )
 
 func TestRepo_CRUD(t *testing.T) {
 	r := memory.NewRepo()
 
-	orders, err := r.AllOrders()
+	products, err := r.AllProducts()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(orders) != 0 {
-		t.Fatalf("expected empty list, got %d orders", len(orders))
+	if len(products) != 0 {
+		t.Fatalf("expected empty list, got %d products", len(products))
 	}
 
-	created, err := r.AddOrder("first")
+	created, err := r.AddProduct("first")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -26,7 +26,7 @@ func TestRepo_CRUD(t *testing.T) {
 		t.Fatalf("unexpected create result: %+v", created)
 	}
 
-	got, err := r.OrderByID(created.ID)
+	got, err := r.ProductByID(created.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -34,7 +34,7 @@ func TestRepo_CRUD(t *testing.T) {
 		t.Fatalf("get mismatch: %+v vs %+v", got, created)
 	}
 
-	updated, err := r.SetOrder(created.ID, "updated")
+	updated, err := r.SetProduct(created.ID, "updated")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -42,18 +42,18 @@ func TestRepo_CRUD(t *testing.T) {
 		t.Fatalf("expected updated title, got %q", updated.Title)
 	}
 
-	orders, err = r.AllOrders()
+	products, err = r.AllProducts()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(orders) != 1 {
-		t.Fatalf("expected 1 order, got %d", len(orders))
+	if len(products) != 1 {
+		t.Fatalf("expected 1 product, got %d", len(products))
 	}
 
-	if err := r.RemoveOrder(created.ID); err != nil {
+	if err := r.RemoveProduct(created.ID); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := r.OrderByID(created.ID); err != domain.ErrNotFound {
+	if _, err := r.ProductByID(created.ID); err != domain.ErrNotFound {
 		t.Fatalf("expected ErrNotFound, got %v", err)
 	}
 }

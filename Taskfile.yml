@@ -10,16 +10,29 @@ vars:
   DE_COMPOSE_FILE: compose.yml
 
 tasks:
-  gen:
-    desc: Run go generate
+  deps:
+    desc: Install dev tools (grpcurl for gRPC smoke; buf runs via Docker in task gen)
     cmds:
-      - go generate ./cmd/demo/ ./internal/domain/service/item/ ./internal/domain/service/order/
+      - go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
+
+  gen:
+    desc: Run buf generate and go generate
+    cmds:
+      - |
+        docker run --rm \
+          -v "{{.USER_WORKING_DIR}}:/workspace" \
+          -w /workspace \
+          -e BUF_CACHE_DIR=/tmp/buf-cache \
+          --user $(id -u):$(id -g) \
+          bufbuild/buf:latest \
+          generate
+      - go generate ./cmd/app ./internal/domain/service/item/ ./internal/domain/service/order/ ./internal/domain/service/product/
 
   b-app:
     desc: Compile application to bin/
     cmds:
       - mkdir -p {{.BIN_DIR}}
-      - go build -o {{.BIN}} ./cmd/demo/
+      - go build -o {{.BIN}} ./cmd/app
 
   r-app:
     desc: Build, load .env and run application
@@ -47,6 +60,11 @@ tasks:
     desc: Tail developer environment logs
     cmds:
       - docker compose -f {{.DE_COMPOSE_FILE}} logs -f
+
+  de:prune:
+    desc: Prune developer environment
+    cmds:
+      - docker compose -f {{.DE_COMPOSE_FILE}} down --volumes --rmi all
 
   lint:
     desc: Run org golangci app profile

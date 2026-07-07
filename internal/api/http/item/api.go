@@ -1,10 +1,11 @@
-package http
+package item
 
 import (
 	"encoding/json"
 	nethttp "net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/omcrgnt/demo/internal/api/http"
 	"github.com/omcrgnt/demo/internal/domain/service/item"
 )
 
@@ -47,61 +48,61 @@ func (a *API) registerRoutes() {
 func (a *API) listItems(w nethttp.ResponseWriter, r *nethttp.Request) {
 	items, err := a.svc.List(r.Context())
 	if err != nil {
-		WriteError(w, nethttp.StatusInternalServerError, err)
+		http.WriteError(w, nethttp.StatusInternalServerError, err)
 		return
 	}
 	if items == nil {
-		WriteJSON(w, nethttp.StatusOK, []ItemResponse{})
+		http.WriteJSON(w, nethttp.StatusOK, []ItemResponse{})
 		return
 	}
-	WriteJSON(w, nethttp.StatusOK, toItemResponses(items))
+	http.WriteJSON(w, nethttp.StatusOK, toItemResponses(items))
 }
 
 func (a *API) getItem(w nethttp.ResponseWriter, r *nethttp.Request) {
 	id := chi.URLParam(r, "id")
 	item, err := a.svc.Get(r.Context(), id)
 	if err != nil {
-		WriteServiceError(w, err)
+		http.WriteServiceError(w, err)
 		return
 	}
-	WriteJSON(w, nethttp.StatusOK, toItemResponse(item))
+	http.WriteJSON(w, nethttp.StatusOK, toItemResponse(item))
 }
 
 func (a *API) createItem(w nethttp.ResponseWriter, r *nethttp.Request) {
 	var req CreateItemRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		WriteError(w, nethttp.StatusBadRequest, err)
+		http.WriteError(w, nethttp.StatusBadRequest, err)
 		return
 	}
 
 	item, err := a.svc.Create(r.Context(), req.Title)
 	if err != nil {
-		WriteServiceError(w, err)
+		http.WriteServiceError(w, err)
 		return
 	}
-	WriteJSON(w, nethttp.StatusCreated, toItemResponse(item))
+	http.WriteJSON(w, nethttp.StatusCreated, toItemResponse(item))
 }
 
 func (a *API) updateItem(w nethttp.ResponseWriter, r *nethttp.Request) {
 	id := chi.URLParam(r, "id")
 	var req UpdateItemRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		WriteError(w, nethttp.StatusBadRequest, err)
+		http.WriteError(w, nethttp.StatusBadRequest, err)
 		return
 	}
 
 	item, err := a.svc.Update(r.Context(), id, req.Title)
 	if err != nil {
-		WriteServiceError(w, err)
+		http.WriteServiceError(w, err)
 		return
 	}
-	WriteJSON(w, nethttp.StatusOK, toItemResponse(item))
+	http.WriteJSON(w, nethttp.StatusOK, toItemResponse(item))
 }
 
 func (a *API) deleteItem(w nethttp.ResponseWriter, r *nethttp.Request) {
 	id := chi.URLParam(r, "id")
 	if err := a.svc.Delete(r.Context(), id); err != nil {
-		WriteServiceError(w, err)
+		http.WriteServiceError(w, err)
 		return
 	}
 	w.WriteHeader(nethttp.StatusNoContent)
